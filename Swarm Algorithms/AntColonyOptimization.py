@@ -1,10 +1,9 @@
 # encoding:utf-8
-
 import random, math
 
 # classe que representa uma aresta
+#Toda Aresta tem: ORIGEM, DESTINO, CUSTO (PESO) e FEROMONIO 
 class Aresta:
-
 	def __init__(self, origem, destino, custo):
 		self.origem = origem
 		self.destino = destino
@@ -26,11 +25,6 @@ class Aresta:
 	def setFeromonio(self, feromonio):
 		self.feromonio = feromonio
 
-class OcorrenciaPolicial:
-
-        def __init__(self, magnitude):
-            self.magnitude = magnitude
-
 # classe que representa um grafo (grafos completos)
 class Grafo:
 
@@ -39,13 +33,16 @@ class Grafo:
 		self.arestas = {} # dicionário com as arestas
 		self.vizinhos = {} # dicionário com todos os vizinhos de cada vértice
 
-
+	#Cria uma nova aresta dentro do grafo
 	def adicionarAresta(self, origem, destino, custo):
 		aresta = Aresta(origem=origem, destino=destino, custo=custo)
+		#salva dentro do dicionário a aresta como o par origem-destino
 		self.arestas[(origem, destino)] = aresta
 		if origem not in self.vizinhos:
+			#caso a origem do grafa já não seja um vizinho, então a origem da própria aresta é o seu próprio destino
 			self.vizinhos[origem] = [destino]
 		else:
+			#Quando entre aqui, signifca que esse vertice tem grau > 1
 			self.vizinhos[origem].append(destino)
 
 	def obterCustoAresta(self, origem, destino):
@@ -57,6 +54,7 @@ class Grafo:
 	def setFeromonioAresta(self, origem, destino, feromonio):
 		self.arestas[(origem, destino)].setFeromonio(feromonio)
 
+	#calcula o custo de um caminho baseado em uma lista de vertices (arestas)  que a formiga passou
 	def obterCustoCaminho(self, caminho):
 		custo = 0
 		for i in range(self.num_vertices - 1):
@@ -64,9 +62,6 @@ class Grafo:
 		# adiciona o último custo
 		custo += self.obterCustoAresta(caminho[-1], caminho[0])
 		return custo
-
-	def criaOcorrencia(self, magnitude, ocorrenciaPolicia):
-		ocorrenciaPolicial = OcorrenciaPolicial(magnitude)
 
 class GrafoCompleto(Grafo):
 	# gera um grafo completo
@@ -79,6 +74,7 @@ class GrafoCompleto(Grafo):
 
 
 # classe que representa uma formiga
+#Cada formiga tem uma cidade (em que se encontra), uma solução (caminho que percorreu) e o total desse custo
 class Formiga:
 
 	def __init__(self, cidade):
@@ -97,9 +93,11 @@ class Formiga:
 
 	def setSolucao(self, solucao, custo):
 		# atualiza a solução
+		#caso o custo atual seja 0 => não percorreu nada, cria uma nova solução baseada nos parametros
 		if not self.custo:
 			self.solucao = solucao[:]
 			self.custo = custo
+		#caso negativo, caso o custo seja menor, então considere a nova solução como a solução
 		else:
 			if custo < self.custo:
 				self.solucao = solucao[:]
@@ -110,7 +108,9 @@ class Formiga:
 
 # classe do ACO
 class ACO:
-
+	#alfa => fator que determina o peso do feromoneo nas formigas
+	#beta => fator que determina a heuristica
+	#delta => taxa de evaporação
 	def __init__(self, grafo, num_formigas, alfa=1.0, beta=5.0, 
 						iteracoes=10, evaporacao=0.5):
 		self.grafo = grafo
@@ -121,12 +121,16 @@ class ACO:
 		self.evaporacao = evaporacao # taxa de evaporação
 		self.formigas = [] # lista de formigas
 
+		#lista todas as cidades (vertices) criados
 		lista_cidades = [cidade for cidade in range(1, self.grafo.num_vertices + 1)]
 		# cria as formigas colocando cada uma em uma cidade
 		for k in range(self.num_formigas):
+			#define cidade da formiga
 			cidade_formiga = random.choice(lista_cidades)
 			lista_cidades.remove(cidade_formiga)
+			#cria uma formiga para a cidade (parametro cidade) e adiciona na lista de formigas
 			self.formigas.append(Formiga(cidade=cidade_formiga))
+			#caso todas as cidades tenham sido selecionadas, recrie a lista de cidades
 			if not lista_cidades:
 				lista_cidades = [cidade for cidade in range(1, self.grafo.num_vertices + 1)]
 
@@ -137,13 +141,19 @@ class ACO:
 		vertice_corrente = vertice_inicial
 		visitados = [vertice_corrente] # lista de visitados
 		while True:
+			#recupera todos os vertices que são adijacentes a este
 			vizinhos = self.grafo.vizinhos[vertice_corrente][:]
 			custos, escolhidos = [], {}
+			#para cada vizinho
 			for vizinho in vizinhos:
+				#caso não tenha sido visitado antes
 				if vizinho not in visitados:
+					#calcule o custo 
 					custo = self.grafo.obterCustoAresta(vertice_corrente, vizinho)
+					#adiciona nas variáveis
 					escolhidos[custo] = vizinho
 					custos.append(custo)
+			#quando visitar todos os vertices (pois o grafo é completo), saia do loop
 			if len(visitados) == self.grafo.num_vertices:
 				break
 			min_custo = min(custos) # pega o menor custo da lista
@@ -156,6 +166,7 @@ class ACO:
 
 		# inicializa o feromônio de todas as arestas
 		for chave_aresta in self.grafo.arestas:
+			#o feromonio, baseado no algoritmo guloso é 1/(nVertices *custoGuloso) para todos os vertices
 			feromonio = 1.0 / (self.grafo.num_vertices * custo_guloso)
 			self.grafo.setFeromonioAresta(chave_aresta[0], chave_aresta[1], feromonio)
 
@@ -187,6 +198,7 @@ class ACO:
 						distancia = self.grafo.obterCustoAresta(self.formigas[k].obterCidade(), cidade)
 						# adiciona no somatório
 						somatorio += (math.pow(feromonio, self.alfa) * math.pow(1.0 / distancia, self.beta))
+						#somatorio += (feromonioDaAresta ** alfa) * ((1.0/distancia) ** beta)
 
 					# probabilidades de escolher um caminho
 					probabilidades = {}
