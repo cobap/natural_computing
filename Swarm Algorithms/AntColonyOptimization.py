@@ -163,11 +163,11 @@ class ACO:
 
 		# adiciona o custo do último visitado ao custo_guloso
 		custo_guloso += self.grafo.obterCustoAresta(visitados[-1], vertice_inicial)
-
 		# inicializa o feromônio de todas as arestas
 		for chave_aresta in self.grafo.arestas:
 			#o feromonio, baseado no algoritmo guloso é 1/(nVertices *custoGuloso) para todos os vertices
 			feromonio = 1.0 / (self.grafo.num_vertices * custo_guloso)
+			print("Feromonio: ", feromonio)
 			self.grafo.setFeromonioAresta(chave_aresta[0], chave_aresta[1], feromonio)
 
 
@@ -206,6 +206,7 @@ class ACO:
 					for cidade in cidades_nao_visitadas:
 						# calcula o feromônio
 						feromonio = self.grafo.obterFeromonioAresta(self.formigas[k].obterCidade(), cidade)
+						print('Feromonio', feromonio)
 						# obtém a distância
 						distancia = self.grafo.obterCustoAresta(self.formigas[k].obterCidade(), cidade)
 						# obtém a probabilidade
