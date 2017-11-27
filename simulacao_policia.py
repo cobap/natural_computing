@@ -126,7 +126,6 @@ class Cidade:
 
 	def criaEvento(self):
 		evento = Evento(self.getPontoAleatorio())
-		self.eventos.append(evento)
 		return evento
 
 	def criaHQs(self):
@@ -137,6 +136,8 @@ class Cidade:
 		# Adiciona todos os HQ criados dentro da cidade
 		for hq in range(self.qtdHQs):
 			self.hqs.append(HQ(self.mediaAbelhas, self.getPontoAleatorio()))
+		# for hq in self.hqs:
+		# 	print(hq.nome)
 
 	def getPontoAleatorio(self):
 		break_please = 0
@@ -149,31 +150,51 @@ class Cidade:
 	def iniciaCidade(self):
 		# Inicia cidade - criando formigas, HQs, eventos, etc...
 		# random.seed(42)
-		iterador = 0
+		iterador = 1
 		self.criaFormigas()
 		self.criaHQs()
-		
+		pelotoes = {}
 		# MAIN 
-		while(iterador < self.iteracoes):
+		while(iterador <= self.iteracoes):
 			# Para cada loop de interação, ande com as formigas aleatóriamente
 			for formiga in self.formigas:
 				# formiga.caminhaAleatoriamente(self.caminhos)
 				formiga.caminhaACO(self.caminhos, self.alfa, self.beta)
 
 			if iterador % 3 == 0:
-					evento = self.criaEvento()
-					print(evento)
-					hqSelecionado = self.hqs[0]
-					distanciaEvento = math.sqrt(pow(hqSelecionado.pontoAtual.x - evento.pontoAtual.x ,2) + pow(hqSelecionado.pontoAtual.y - evento.pontoAtual.y ,2))
-					for hq in self.hqs:
-						distanciaTemp = math.sqrt(pow(hq.pontoAtual.x - evento.pontoAtual.x ,2) + pow(hq.pontoAtual.y - evento.pontoAtual.y ,2)) 
-						if distanciaTemp < distanciaEvento:
-							distanciaEvento = distanciaTemp
-							hqSelecionado = hq
-					print(hqSelecionado)
+				evento = self.criaEvento()
+				self.eventos.append(evento)
+				hqSelecionado = self.hqs[0]
+				distanciaEvento = math.sqrt(pow(hqSelecionado.pontoAtual.x - evento.pontoAtual.x ,2) + pow(hqSelecionado.pontoAtual.y - evento.pontoAtual.y ,2))
+				for hq in self.hqs:
+					distanciaTemp = math.sqrt(pow(hq.pontoAtual.x - evento.pontoAtual.x ,2) + pow(hq.pontoAtual.y - evento.pontoAtual.y ,2)) 
+					if distanciaTemp < distanciaEvento:
+						distanciaEvento = distanciaTemp
+						hqSelecionado = hq
+				print(hqSelecionado)
+				pelotoes[evento.nome] = hqSelecionado.lancaPelotao(evento)
+				for abelha in pelotoes[evento.nome]:
+					print abelha
+				# print pelotoes[evento.nome]
+
+			eventos_mortos = []
+			for evento in self.eventos:
+				print('RODA EVENTO-----------------------')
+				print("EVENTO:" , evento.nome)
+				# print('NUMERO EVENTOS: ', len(self.eventos))
+				abelhaLider = pelotoes[evento.nome]
+				print(abelhaLider[0])
+				abelhaLider[0].caminhaOtimizado(self.caminhos)
+
+				#Caso tenha chego no evento
+				if(abelhaLider[0].pontoAtual == evento.pontoAtual):
+					print('CHEGOU AO EVENTO!!')
+					eventos_mortos.append(evento)
+					for abelha in pelotoes[evento.nome]:
+						# adicionar abelha novamente no HQ
+						pass
 
 
-			
 			iterador = iterador + 1
 
 '''
@@ -262,9 +283,9 @@ class Formiga:
 		self.pontoAtual.setObjeto(False)
 		# Define o vertice atual como o novo vertice - de onde foi do ponto A para o ponto B
 		if(self.pontoAtual.nome == str(caminhos[index_escolhido])):
-			self.pontoAtual = caminhos[index].pontoB
+			self.pontoAtual = caminhos[index_escolhido].pontoB
 		else:
-			self.pontoAtual = caminhos[index].pontoA
+			self.pontoAtual = caminhos[index_escolhido].pontoA
 		# Define que esta ocupando o ponto B agora
 		self.pontoAtual.setObjeto(True)
 		# Define novo feromonio (por enquanto aleatóriamente)
@@ -294,6 +315,37 @@ class Abelha:
 		letra = random.randint(0, len(letras)-1)
 		numero = random.randint(1,100)
 		self.nome = 'BEE-' + str(letras[letra]) + str(letra)
+
+	def caminhaOtimizado(self, caminhos):
+		self.pontoAtual.setObjeto(False)
+		caminhos = [caminho for caminho in caminhos if caminho.pontoA.nome == self.pontoAtual.nome or caminho.pontoB.nome == self.pontoAtual.nome]
+		print('AFTER----------------------------------- PONTO ATUAL', self.pontoAtual.nome)
+		for caminho in caminhos:
+			print(str(caminho), 'FEROMONIO', caminho.feromonio)
+			pass
+		melhorCaminho = caminhos[0]
+		indexEscolhido = 0
+		for index, caminho in zip(range(len(caminhos)), caminhos):
+			if(caminhos[index].feromonio > melhorCaminho.feromonio):
+				melhorCaminho = caminhos[index]
+				indexEscolhido = index
+
+		print('vertice escolhido: ', str(caminhos[indexEscolhido]))
+
+		if(self.pontoAtual == caminhos[indexEscolhido].pontoA):
+			self.pontoAtual = caminhos[indexEscolhido].pontoB
+			# print(caminhos[indexEscolhido].pontoB.nome)
+		else:
+			self.pontoAtual = caminhos[indexEscolhido].pontoA
+			# print(caminhos[indexEscolhido].pontoA.nome)
+
+		# Define que esta ocupando o ponto B agora
+		self.pontoAtual.setObjeto(True)
+
+		#TESTE - ZERANDO FEROMONIO
+		caminhos[indexEscolhido].feromonio = 0
+
+
 
 	def __str__(self):
 		return self.nome
@@ -366,6 +418,6 @@ class Evento:
 
 #-------------------- MAIN --------------------#
 if __name__ == "__main__":
-	cidade1 = Cidade(3)
+	cidade1 = Cidade(30)
 	cidade1.mostraCidade()
 	cidade1.iniciaCidade()
