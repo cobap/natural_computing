@@ -163,6 +163,15 @@ class Cidade:
 			if iterador % 3 == 0:
 					evento = self.criaEvento()
 					print(evento)
+					hqSelecionado = self.hqs[0]
+					distanciaEvento = math.sqrt(pow(hqSelecionado.pontoAtual.x - evento.pontoAtual.x ,2) + pow(hqSelecionado.pontoAtual.y - evento.pontoAtual.y ,2))
+					for hq in self.hqs:
+						distanciaTemp = math.sqrt(pow(hq.pontoAtual.x - evento.pontoAtual.x ,2) + pow(hq.pontoAtual.y - evento.pontoAtual.y ,2)) 
+						if distanciaTemp < distanciaEvento:
+							distanciaEvento = distanciaTemp
+							hqSelecionado = hq
+					print(hqSelecionado)
+
 
 			
 			iterador = iterador + 1
@@ -301,6 +310,7 @@ class HQ:
 		self.pontoAtual.setObjeto(True)
 		self.abelhas = []
 		self.criaAbelhas()
+		self.abelhasAtual = numero_abelhas
 
 	def criaAbelhas(self):
 		for iterador in range(0, self.numero_abelhas):
@@ -312,6 +322,17 @@ class HQ:
 		letra = random.randint(0, len(letras)-1)
 		numero = random.randint(1,100)
 		self.nome =  'COL-' + str(letra) + str(letras[letra])
+
+	def lancaPelotao(self, evento):
+		if self.abelhasAtual < evento.intensidade:
+			return None
+		else:
+			pelotao = []
+			while len(pelotao) != evento.intensidade:
+				pelotao.append(self.abelhas.pop())
+			self.abelhasAtual = self.abelhasAtual - evento.intensidade
+			return pelotao
+
 
 	def __str__(self):
 		return self.nome
