@@ -138,9 +138,10 @@ class Cidade:
 		print('QTD DE Abelhas: ', self.mediaAbelhas)
 		# Adiciona todos os HQ criados dentro da cidade
 		for hq in range(self.qtdHQs):
-			self.hqs.append(HQ(self.mediaAbelhas, self.getPontoAleatorio()))
+			hqTemp = HQ(self.mediaAbelhas, self.getPontoAleatorio())
+			self.hqs.append(hqTemp)
+			print('NOME ', hqTemp.nome, " | LOCAL: ", hqTemp.pontoAtual.nome)
 		# for hq in self.hqs:
-			# print(hq.nome)
 
 	def getPontoAleatorio(self):
 		break_please = 0
@@ -182,7 +183,7 @@ class Cidade:
 						pass
 					else:
 						# print('1N ABELHAS:', hqSelecionado.abelhasAtual, " HQ NAME >> ", hqSelecionado.nome)
-						# print("EVENTO:" , evento.nome, 'INTENSIDADE: ', evento.intensidade)
+						print("EVENTO:" , evento.nome, 'INTENSIDADE: ', evento.intensidade, 'LOCAL', evento.pontoAtual.nome)
 						pelotoes[evento.nome] = hqSelecionado.lancaPelotao(evento)
 						while(pelotoes[evento.nome] == None):
 							# print('loop infinito')
@@ -190,7 +191,7 @@ class Cidade:
 							pelotoes[evento.nome] = hqSelecionado.lancaPelotao(evento)
 						self.eventos.append(evento)
 						# print('2N ABELHAS:', hqSelecionado.abelhasAtual)
-						# print('ABELHAS INDO PARA EVENTO')
+						print('ABELHAS INDO PARA EVENTO')
 						for abelha in pelotoes[evento.nome]:
 							print abelha
 							pass
@@ -198,21 +199,27 @@ class Cidade:
 			eventos_mortos = []
 			for evento in self.eventos:
 				# print('RODA EVENTO-----------------------')
-				print("EVENTO:" , evento.nome)
-				print('LEN', pelotoes[evento.nome])
+				# print("EVENTO:" , evento.nome)
+				# print('LEN', pelotoes[evento.nome])
 				abelhaLider = pelotoes[evento.nome]
-				print('preparando abelha lider')
+				# print('preparando abelha lider')
 				abelhaLider[0].caminhaOtimizado(self.caminhos)
-				print('abelha lider andando')
+				# print('abelha lider andando')
 
 				#Caso tenha chego no evento
 				if(abelhaLider[0].pontoAtual == evento.pontoAtual):
-					# print('CHEGOU AO EVENTO!!')
+					print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!CHEGOU AO EVENTO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 					eventos_mortos.append(evento)
+					self.eventos.remove(evento)
+					print('Adicionado abelha ao HQ')
 					for abelha in pelotoes[evento.nome]:
-						# adicionar abelha novamente no HQ
-						pass
-			print('NUMERO EVENTOS: ', len(self.eventos))
+						abelha.pontoAtual.setObjeto(False)
+						for hq in self.hqs:
+							if hq.id == abelha.id_hq:
+								abelha.pontoAtual = hq.pontoAtual
+								hq.abelhasAtual = hq.abelhasAtual+1
+								hq.abelhas.append(abelha)
+			# print('NUMERO EVENTOS: ', len(self.eventos))
 
 			iterador = iterador + 1
 
@@ -327,9 +334,9 @@ class Formiga:
 *	Implementação customizada do algoritmo Abelha - possui uma função (define seu comportamento) e sua "força", juntas formam uma colmeia
 '''		
 class Abelha:
-	def __init__(self, funcao, id_hq, pontoAtual):
+	def __init__(self, funcao, id_hq, pontoAtual, idHQ):
 		self.funcao = funcao
-		self.id_hq = id_hq
+		self.id_hq = idHQ
 		self.setNome()
 		self.pontoAtual = pontoAtual
 		self.pontoAtual.setObjeto(True)
@@ -385,12 +392,13 @@ class HQ:
 		self.pontoAtual = pontoAtual
 		self.pontoAtual.setObjeto(True)
 		self.abelhas = []
+		self.id = random.randint(10000,100000000)
 		self.criaAbelhas()
 		self.abelhasAtual = numero_abelhas
 
 	def criaAbelhas(self):
 		for iterador in range(0, self.numero_abelhas):
-			abelhaTemp = Abelha('Tropa', self.nome, self.pontoAtual)
+			abelhaTemp = Abelha('Tropa', self.nome, self.pontoAtual, self.id)
 			self.abelhas.append(abelhaTemp)
 
 	def setNome(self):
@@ -425,7 +433,7 @@ class Evento:
 		self.pontoAtual.setObjeto(True)
 
 	def setNome(self):
-		letras = ['Assalto', 'Briga', 'Corrida de Rua', 'Depredação', 'Extermínio', 'Fuga', 'G', 'H', 'Individuo Suspeito', 'J', 'K', 'Ladrão', 'M', 'N', 'Operação Policial', 'PM na Área', 'Quadrilha', 'R', 'S', 'Tiroteio', 'U', 'Vítima', 'W', 'X', 'Y', 'Z']
+		letras = ['Assalto', 'Briga', 'Corrida de Rua', 'Depredação', 'Extermínio', 'Fuga', 'Golpe de Estado', 'Hospital em Chamas', 'Individuo Suspeito', 'Joalheiria Roubada', 'Ladrão', 'Mulher em Trabalho de Parto', 'Navio Afundando', 'Operação Policial', 'PM na Área', 'Quadrilha', 'Resgate', 'Soldado Ferido', 'Tiroteio', 'Vítima de Acidente']
 		letra = random.randint(0, len(letras)-1)
 		self.nome =  str(letras[letra]) +str(letra)
 
@@ -442,6 +450,7 @@ class Evento:
 
 #-------------------- MAIN --------------------#
 if __name__ == "__main__":
-	cidade1 = Cidade(30)
+	# cidade1 = Cidade(1000)
+	cidade1 = Cidade(1000)
 	cidade1.mostraCidade()
 	cidade1.iniciaCidade()
