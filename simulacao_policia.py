@@ -79,7 +79,7 @@ class Cidade:
 		self.iteracoes = iteracoes
 		self.caminhos = []
 
-		print('QTD PONTOS: ', self.numero_pontos)
+		# print('QTD PONTOS: ', self.numero_pontos)
 		# Dado o numero de pontos aleatórios
 		for ponto in range(self.numero_pontos):
 			# Crie pontos com coordenadas aleatórias
@@ -91,12 +91,13 @@ class Cidade:
 		self.criaGrafoConexo()
 
 	def mostraCidade(self):
-		print('MOSTRA CIDADE-----------------------------')
+		# print('MOSTRA CIDADE-----------------------------')
 		for caminho in self.caminhos:
 			print('Caminho A ' + caminho.pontoA.nome + '- B ' + caminho.pontoB.nome)
+			pass
 
 	def criaGrafoConexo(self):
-		# Primeiro fazemos uma cópia do vetor de pontos
+		#Primeiro fazemos uma cópia do vetor de pontos
 		self.pontos_backup = copy.copy(self.pontos)
 		self.pontos_aux = []
 		
@@ -119,7 +120,7 @@ class Cidade:
 		# O número de formigas sempre será 1/3 do número de vertices
 		self.qtdFormigas = int(round((float) (self.numero_pontos * 1)/3))
 		# self.qtdFormigas = 1
-		print('QTD DE FORMIGAS: ', self.qtdFormigas)
+		# print('QTD DE FORMIGAS: ', self.qtdFormigas)
 		for formiga in range(self.qtdFormigas):
 			# Crie uma formiga do tipo patrulha e adicione em um ponto onde não exista nenhuma outra classe
 			self.formigas.append(Formiga('Patrulha', self.getPontoAleatorio()))
@@ -131,13 +132,13 @@ class Cidade:
 	def criaHQs(self):
 		# Número de HQ é sempre 1/5 do número de vertices do grafo
 		self.qtdHQs = int(round((float) (self.numero_pontos * 1)/5))
-		print('QTD DE HQs: ', self.qtdHQs)
-		print('QTD DE Abelhas: ', self.mediaAbelhas)
+		# print('QTD DE HQs: ', self.qtdHQs)
+		# print('QTD DE Abelhas: ', self.mediaAbelhas)
 		# Adiciona todos os HQ criados dentro da cidade
 		for hq in range(self.qtdHQs):
 			self.hqs.append(HQ(self.mediaAbelhas, self.getPontoAleatorio()))
 		# for hq in self.hqs:
-		# 	print(hq.nome)
+			# print(hq.nome)
 
 	def getPontoAleatorio(self):
 		break_please = 0
@@ -156,14 +157,13 @@ class Cidade:
 		pelotoes = {}
 		# MAIN 
 		while(iterador <= self.iteracoes):
-			# Para cada loop de interação, ande com as formigas aleatóriamente
+			#Para cada loop de interação, ande com as formigas aleatóriamente
 			for formiga in self.formigas:
 				# formiga.caminhaAleatoriamente(self.caminhos)
 				formiga.caminhaACO(self.caminhos, self.alfa, self.beta)
 
 			if iterador % 3 == 0:
 				evento = self.criaEvento()
-				self.eventos.append(evento)
 				hqSelecionado = self.hqs[0]
 				distanciaEvento = math.sqrt(pow(hqSelecionado.pontoAtual.x - evento.pontoAtual.x ,2) + pow(hqSelecionado.pontoAtual.y - evento.pontoAtual.y ,2))
 				for hq in self.hqs:
@@ -171,24 +171,32 @@ class Cidade:
 					if distanciaTemp < distanciaEvento:
 						distanciaEvento = distanciaTemp
 						hqSelecionado = hq
-				print(hqSelecionado)
-				pelotoes[evento.nome] = hqSelecionado.lancaPelotao(evento)
-				for abelha in pelotoes[evento.nome]:
-					print abelha
+				# print(hqSelecionado)
+				if(hqSelecionado.numero_abelhas == 0):
+					pass
+				else:
+					pelotoes[evento.nome] = hqSelecionado.lancaPelotao(evento)
+					while(pelotoes[evento.nome] == None):
+						evento.intensidade = evento.intensidade - 1
+						pelotoes[evento.nome] = hqSelecionado.lancaPelotao(evento)
+					self.eventos.append(evento)
+					print('ABELHAS INDO PARA EVENTO')
+					for abelha in pelotoes[evento.nome]:
+						print abelha
+						pass
 				# print pelotoes[evento.nome]
-
 			eventos_mortos = []
 			for evento in self.eventos:
-				print('RODA EVENTO-----------------------')
-				print("EVENTO:" , evento.nome)
+				# print('RODA EVENTO-----------------------')
+				# print("EVENTO:" , evento.nome)
 				# print('NUMERO EVENTOS: ', len(self.eventos))
 				abelhaLider = pelotoes[evento.nome]
-				print(abelhaLider[0])
+				# print(abelhaLider[0])
 				abelhaLider[0].caminhaOtimizado(self.caminhos)
 
 				#Caso tenha chego no evento
 				if(abelhaLider[0].pontoAtual == evento.pontoAtual):
-					print('CHEGOU AO EVENTO!!')
+					# print('CHEGOU AO EVENTO!!')
 					eventos_mortos.append(evento)
 					for abelha in pelotoes[evento.nome]:
 						# adicionar abelha novamente no HQ
@@ -240,43 +248,48 @@ class Formiga:
 		print('FEROMONIO NOVO: '+ str(caminhos[caminhoEscolhido].feromonio))
 
 	def caminhaACO(self, caminhos, alfa, beta):
-		# print('FORMIGA '+self.nome + 'LUGAR '+self.pontoAtual.nome)
-		# print('BEFORE-----------------------------------')
-		# for caminho in caminhos:
-		# 	print(caminho)
+		# print('FORMIGA '+self.nome + ' |	LUGAR '+self.pontoAtual.nome)
 		caminhos = [caminho for caminho in caminhos if caminho.pontoA.nome == self.pontoAtual.nome or caminho.pontoB.nome == self.pontoAtual.nome]
 		# print('AFTER-----------------------------------')
+		#ENTENDER PQ PRECISA DISSO
 		for caminho in caminhos:
-			# print(caminho)
-			pass
+			if caminho.feromonio == 0:
+				caminho.feromonio = 0.0001
+			# print("  ", str(caminho))
 
 		# Vetor que será armazenada as probabilidades dos caminhos
 		probabilidades = []
 		for caminho in caminhos:
 			# Calcula a probabilidade baseado no feromonio do caminho e a sua distancia
 			probabilidade = (math.pow(caminho.feromonio, alfa) * math.pow(1.0 / caminho.distancia, beta))
+			# print('FERO, ALFA, DIST, BETA', caminho.feromonio, alfa, 1.0/caminho.distancia, beta)
+			# print('PROB', probabilidade)
 			probabilidades.append(probabilidade)
 		# Somatório de todas as probabilidades
 		somatoria_probabilidades = sum(float(prob) for prob in probabilidades)
 		
 		caminho_escolhido = 0
 		index_escolhido = -1
-		# Para todos as probabilidades calculadas
+		#Para todos as probabilidades calculadas
 		for index, probabilidade in zip(range(len(probabilidades)), probabilidades):
 			# print('Caminho', str(caminhos[index]) ,'Probabilidade: ', probabilidade/somatoria_probabilidades, 'Distancia', caminhos[index].distancia)
 			# Selecionada caminho escolhido como maior caso sua probabilidade seja a maior de todas
+			# print('############################')
+			# print(probabilidade)
+			# print(somatoria_probabilidades)
 			if((probabilidade/somatoria_probabilidades) > caminho_escolhido):
 				# Recalcula o caminho escolhido
 				caminho_escolhido = (probabilidade/somatoria_probabilidades)
 				# Define o index
 				# print('MELHRO INDEX É', index)
 				index_escolhido = index
+			# print('############################')
 
 		# print('MELHOR PONTO - INDEX', index_escolhido)
 		# print('Caminho', str(caminhos[index_escolhido]) ,'Probabilidade: ', probabilidades[index_escolhido]/somatoria_probabilidades, 'Distancia', caminhos[index_escolhido].distancia)
 		
 		if(index_escolhido == -1):
-			print('caminhando aleatóriamente')
+			# print('caminhando aleatóriamente')
 			return self.caminhaAleatoriamente(caminhos)
 
 		# Sai do vertice atual
@@ -319,9 +332,9 @@ class Abelha:
 	def caminhaOtimizado(self, caminhos):
 		self.pontoAtual.setObjeto(False)
 		caminhos = [caminho for caminho in caminhos if caminho.pontoA.nome == self.pontoAtual.nome or caminho.pontoB.nome == self.pontoAtual.nome]
-		print('AFTER----------------------------------- PONTO ATUAL', self.pontoAtual.nome)
+		# print('AFTER----------------------------------- PONTO ATUAL', self.pontoAtual.nome)
 		for caminho in caminhos:
-			print(str(caminho), 'FEROMONIO', caminho.feromonio)
+			# print(str(caminho), 'FEROMONIO', caminho.feromonio)
 			pass
 		melhorCaminho = caminhos[0]
 		indexEscolhido = 0
@@ -330,7 +343,7 @@ class Abelha:
 				melhorCaminho = caminhos[index]
 				indexEscolhido = index
 
-		print('vertice escolhido: ', str(caminhos[indexEscolhido]))
+		# print('vertice escolhido: ', str(caminhos[indexEscolhido]))
 
 		if(self.pontoAtual == caminhos[indexEscolhido].pontoA):
 			self.pontoAtual = caminhos[indexEscolhido].pontoB
