@@ -126,14 +126,16 @@ class Cidade:
 			self.formigas.append(Formiga('Patrulha', self.getPontoAleatorio()))
 
 	def criaEvento(self):
-		evento = Evento(self.getPontoAleatorio())
-		return evento
+		pontoEvento = self.getPontoAleatorio()
+		if pontoEvento == None:
+			return None
+		return Evento(pontoEvento)
 
 	def criaHQs(self):
 		# Número de HQ é sempre 1/5 do número de vertices do grafo
 		self.qtdHQs = int(round((float) (self.numero_pontos * 1)/5))
-		# print('QTD DE HQs: ', self.qtdHQs)
-		# print('QTD DE Abelhas: ', self.mediaAbelhas)
+		print('QTD DE HQs: ', self.qtdHQs)
+		print('QTD DE Abelhas: ', self.mediaAbelhas)
 		# Adiciona todos os HQ criados dentro da cidade
 		for hq in range(self.qtdHQs):
 			self.hqs.append(HQ(self.mediaAbelhas, self.getPontoAleatorio()))
@@ -145,7 +147,10 @@ class Cidade:
 		while(True):
 			pontoAleatorio = random.randint(0, self.numero_pontos-1)
 			if self.pontos[pontoAleatorio].getObjeto() == False:
-				return self.pontos[pontoAleatorio]	
+				return self.pontos[pontoAleatorio]
+			if break_please == 100:
+				return None
+			break_please = break_please + 1	
 
 	#Problemas para criar eventos em vertices vazios
 	def iniciaCidade(self):
@@ -164,35 +169,41 @@ class Cidade:
 
 			if iterador % 3 == 0:
 				evento = self.criaEvento()
-				hqSelecionado = self.hqs[0]
-				distanciaEvento = math.sqrt(pow(hqSelecionado.pontoAtual.x - evento.pontoAtual.x ,2) + pow(hqSelecionado.pontoAtual.y - evento.pontoAtual.y ,2))
-				for hq in self.hqs:
-					distanciaTemp = math.sqrt(pow(hq.pontoAtual.x - evento.pontoAtual.x ,2) + pow(hq.pontoAtual.y - evento.pontoAtual.y ,2)) 
-					if distanciaTemp < distanciaEvento:
-						distanciaEvento = distanciaTemp
-						hqSelecionado = hq
-				# print(hqSelecionado)
-				if(hqSelecionado.numero_abelhas == 0):
-					pass
-				else:
-					pelotoes[evento.nome] = hqSelecionado.lancaPelotao(evento)
-					while(pelotoes[evento.nome] == None):
-						evento.intensidade = evento.intensidade - 1
-						pelotoes[evento.nome] = hqSelecionado.lancaPelotao(evento)
-					self.eventos.append(evento)
-					print('ABELHAS INDO PARA EVENTO')
-					for abelha in pelotoes[evento.nome]:
-						print abelha
+				if evento != None:
+					hqSelecionado = self.hqs[0]
+					distanciaEvento = math.sqrt(pow(hqSelecionado.pontoAtual.x - evento.pontoAtual.x ,2) + pow(hqSelecionado.pontoAtual.y - evento.pontoAtual.y ,2))
+					for hq in self.hqs:
+						distanciaTemp = math.sqrt(pow(hq.pontoAtual.x - evento.pontoAtual.x ,2) + pow(hq.pontoAtual.y - evento.pontoAtual.y ,2)) 
+						if distanciaTemp < distanciaEvento:
+							distanciaEvento = distanciaTemp
+							hqSelecionado = hq
+					# print(hqSelecionado)
+					if(hqSelecionado.abelhasAtual == 0):
 						pass
-				# print pelotoes[evento.nome]
+					else:
+						# print('1N ABELHAS:', hqSelecionado.abelhasAtual, " HQ NAME >> ", hqSelecionado.nome)
+						# print("EVENTO:" , evento.nome, 'INTENSIDADE: ', evento.intensidade)
+						pelotoes[evento.nome] = hqSelecionado.lancaPelotao(evento)
+						while(pelotoes[evento.nome] == None):
+							# print('loop infinito')
+							evento.intensidade = evento.intensidade - 1
+							pelotoes[evento.nome] = hqSelecionado.lancaPelotao(evento)
+						self.eventos.append(evento)
+						# print('2N ABELHAS:', hqSelecionado.abelhasAtual)
+						# print('ABELHAS INDO PARA EVENTO')
+						for abelha in pelotoes[evento.nome]:
+							print abelha
+							pass
+					# print pelotoes[evento.nome]
 			eventos_mortos = []
 			for evento in self.eventos:
 				# print('RODA EVENTO-----------------------')
-				# print("EVENTO:" , evento.nome)
-				# print('NUMERO EVENTOS: ', len(self.eventos))
+				print("EVENTO:" , evento.nome)
+				print('LEN', pelotoes[evento.nome])
 				abelhaLider = pelotoes[evento.nome]
-				# print(abelhaLider[0])
+				print('preparando abelha lider')
 				abelhaLider[0].caminhaOtimizado(self.caminhos)
+				print('abelha lider andando')
 
 				#Caso tenha chego no evento
 				if(abelhaLider[0].pontoAtual == evento.pontoAtual):
@@ -201,7 +212,7 @@ class Cidade:
 					for abelha in pelotoes[evento.nome]:
 						# adicionar abelha novamente no HQ
 						pass
-
+			print('NUMERO EVENTOS: ', len(self.eventos))
 
 			iterador = iterador + 1
 
