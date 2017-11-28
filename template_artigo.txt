@@ -1,0 +1,19 @@
+Titulo
+ autor
+  filiação (EACH - Universidade de Sâo Paulo)
+Resumo
+
+I - Introdução
+
+II - Modelo ou Método (metodologia) (materiais e métodos)
+
+	Problema que quer resolver
+	 como vai resolver - modelo | algoritmo
+
+III - Resultados
+ focar em gráficos - bonitos. 
+ colocar "figura 1 - + descrição + parametros = tem que ser redudante"
+
+IV - Conclusão
+
+V - Referências
