@@ -138,46 +138,63 @@ class Formiga:
 		# return index, self.getCaminhos()[index], caminho_escolhido
 		return index, caminho_escolhido
 
-def caminhaAleatoriamente(formiga, grafo):
-		print(formiga.pontoAtual.numero)
-
-		# pontoAntigo = formiga.pontoAtual
-		# caminhos2 = g.neighbors(pontoAtual)
-		# caminhoEscolhido2 = random.choice(caminhos2)
-		# formiga.pontoAtual.setObjeto(False)
-		# formiga.pontoAtual = g.node[no]['ponto']
-		# formiga.pontoAtual.setObjeto(True)
-		# g[pontoAntigo][pontoAtual]['caminho'].setFeromonio((random.randint(5,9)/10000.0) + (random.randint(1,9)/100000.0))
+def caminhaAleatoriamente(formiga, g):
+		# print(formiga.pontoAtual.numero)
+		pontoAntigo = formiga.pontoAtual
+		# print(g.neighbors(pontoAntigo.numero))
+		caminhos2 = g.neighbors(pontoAntigo.numero)
+		caminhoEscolhido2 = random.choice(caminhos2)
+		# print(caminhoEscolhido2)
+		formiga.pontoAtual.setObjeto(False)
+		# print(g.node[caminhoEscolhido2]['ponto'])
+		formiga.pontoAtual = g.node[caminhoEscolhido2]['ponto']
+		formiga.pontoAtual.setObjeto(True)
+		g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].aumentaFeromonio()
+		print(str(pontoAntigo.numero) + " -> " + str(formiga.pontoAtual.numero), str(g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho']), g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].feromonio)
 
 #-------------------- MAIN --------------------#
 if __name__ == "__main__":
-	g = nx.fast_gnp_random_graph(5, 0.4)
-	while(nx.is_connected(g) is not True):
-		g = nx.fast_gnp_random_graph(5, 0.4)	
-	g.nodes(data=True)
-	for no in g.nodes():
-		ponto = Ponto(random.randint(1,10), random.randint(1,10), no)
-		g.node[no]['ponto'] = ponto
-		g.node[no]['formiga'] = None
-		print(no, g.node[no]['ponto'].nome)
-		# print(g.node[aresta[0]]['ponto'])
-	for aresta in g.edges(data=True):
-		caminho = Caminho(g.node[aresta[0]]['ponto'], g.node[aresta[1]]['ponto'])
-		print(caminho)
-		g[aresta[0]][aresta[1]]['caminho'] = caminho
-		# print(g[aresta[0]][aresta[1]]['caminho'].feromonio)
+	n_vertices = 15
+	chance_aresta = 0.4
+	# Cria gráfico aleatório com n_vertices e % de existir uma aresta entre dois vertices
+	g = nx.fast_gnp_random_graph(n_vertices, chance_aresta)
 	
-	# no_escolhido = g.node(random.randint(1,5))
-	# print(no_escolhido)
+	# Verifica se vertíce é conexo
+	while(nx.is_connected(g) is not True):
+		# Caso não seja, o recrie até que seja - comoqueremos facilitar as coisas, só podemos avançar com um vertice que permite andar por uma aresta
+		g = nx.fast_gnp_random_graph(5, 0.4)	
 
+	# Para cada nó dentro do grafo
+	for no in g.nodes():
+		# Criamos o ponto que irá definir aquele nó - sendo um número com uma coordenada aleatória entre 1~10. Recebe também o numero do vertice
+		ponto = Ponto(random.randint(1,10), random.randint(1,10), no)
+		# Definimos o Ponto como a variável 'ponto' dentro do verdadeiro nó do grafo
+		g.node[no]['ponto'] = ponto
+		# Também definimos que começa sem nenhuma formiga
+		g.node[no]['formiga'] = None
+		# Damos um print no nome real vs nome ficticio do nó - para podermos comparar depois
+		print(no, g.node[no]['ponto'].nome)
+
+	# Para cada aresta dentro do grafo
+	for aresta in g.edges():
+		# Criamos um caminho que liga 
+		caminho = Caminho(g.node[aresta[0]]['ponto'], g.node[aresta[1]]['ponto'])
+		g[aresta[0]][aresta[1]]['caminho'] = caminho
+		# print(caminho)
+		# print(g[aresta[0]][aresta[1]]['caminho'].feromonio)
+
+	# Escolhe um nó aleatório para criar a formiga
 	no_ale = random.randint(1,4)
+	# Cria uma formiga do tipo patrulha que tem como ponto, o ponto indicado aleatóriamente pelo número
 	formiga1 = Formiga('PATRULHA', g.node[no_ale]['ponto'])
-	print('FORMIGA 1', formiga1.pontoAtual)
+	print('FORMIGA 1', formiga1.pontoAtual.numero)
+	# Inicializamos a formiga no grafo, criando o atributo formiga dentro do vertice que antes não havia nada
 	g.node[no_ale]['formiga'] = formiga1
 	
-	for no in g.nodes():
-		if(g.node[no]['formiga'] is not None):
-			caminhaAleatoriamente(g.node[no]['formiga'], g)
+	for iterador in range(1,10):
+		for no in g.nodes():
+			if(g.node[no]['formiga'] is not None):
+				caminhaAleatoriamente(g.node[no]['formiga'], g)
 
 	# print(g.node[no_ale]['formiga'])
 
