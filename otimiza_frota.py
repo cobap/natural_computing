@@ -246,6 +246,7 @@ def caminhaOtimizadoAbelha(abelha, g):
 	print(abelha.pontoAtual.numero)
 
 def caminhaACO(formiga, g):
+	print(formiga.nome)
 	formiga.pontoAtual.setObjeto(False)
 	pontoAntigo = formiga.pontoAtual
 	print(formiga.pontoAtual.numero)
@@ -254,16 +255,17 @@ def caminhaACO(formiga, g):
 	feromoniosCaminhos = [g[pontoAntigo.numero][numero_vertice]['caminho'].feromonio for numero_vertice in caminhos2]
 	probabilidades = [(math.pow(g[pontoAntigo.numero][numero_vertice]['caminho'].feromonio, g.graph['alfa']) * math.pow(1.0 / g[pontoAntigo.numero][numero_vertice]['caminho'].distancia, g.graph['beta'])) for numero_vertice in caminhos2]
 	# probabilidade = (math.pow(caminho.feromonio, alfa) * math.pow(1.0 / caminho.distancia, beta))
-	# print(caminhos2)
-	# print(feromoniosCaminhos)
+	print(caminhos2)
+	print(feromoniosCaminhos)
 	# print(probabilidades)
 	somatoria_probabilidades = sum(float(prob) for prob in probabilidades)
 	# print(somatoria_probabilidades)
 
 	ratio_probabilidades = [probabilidade/somatoria_probabilidades for probabilidade in probabilidades]
-	# print(ratio_probabilidades)
+	print(ratio_probabilidades)
 	# somatoria_ratio_probabilidades = sum(float(prob) for prob in ratio_probabilidades)
 	# print(somatoria_ratio_probabilidades)
+	print(ratio_probabilidades.index(max(ratio_probabilidades)))
 
 	formiga.pontoAtual = g.node[caminhos2[ratio_probabilidades.index(max(ratio_probabilidades))]]['ponto']
 	formiga.pontoAtual.setObjeto(True)
@@ -307,11 +309,19 @@ if __name__ == "__main__":
 
 	# Escolhe um nó aleatório para criar a formiga
 	no_ale = random.randint(1,4)
+	no_ale2 = random.randint(5,10)
+	no_ale3 = random.randint(10,14)
 	# Cria uma formiga do tipo patrulha que tem como ponto, o ponto indicado aleatóriamente pelo número
 	formiga1 = Formiga('PATRULHA', g.node[no_ale]['ponto'])
-	print('FORMIGA NINAU', formiga1.pontoAtual.numero)
+	formiga2 = Formiga('PATRULHA', g.node[no_ale2]['ponto'])
+	formiga3 = Formiga('PATRULHA', g.node[no_ale3]['ponto'])
+	print(formiga1.nome, formiga1.pontoAtual.numero)
+	print(formiga2.nome, formiga2.pontoAtual.numero)
+	print(formiga3.nome, formiga3.pontoAtual.numero)
 	# Inicializamos a formiga no grafo, criando o atributo formiga dentro do vertice que antes não havia nada
 	g.node[no_ale]['formiga'] = formiga1
+	g.node[no_ale2]['formiga'] = formiga2
+	g.node[no_ale3]['formiga'] = formiga3
 	
 	for iterador in range(1,10):
 		for no in g.nodes():
