@@ -138,11 +138,89 @@ class Formiga:
 		# return index, self.getCaminhos()[index], caminho_escolhido
 		return index, caminho_escolhido
 
+class Abelha:
+	def __init__(self, funcao, id_hq, pontoAtual):
+		self.funcao = funcao
+		self.id_hq = id_hq
+		self.setNome()
+		self.pontoAtual = pontoAtual
+		self.pontoAtual.setObjeto(True)
+
+	def setNome(self):
+		letras = ['Corine', 'Nina', 'Laraine', 'Gaspard', 'Bartolemo', 'Rebe', 'Gasper', 'Pauli', 'Sheila-kathryn', 'Gus', 'Christabella', 'Thalia', 'Tyrone', 'Dennison', 'Udale', 'Annaliese', 'Rufus', 'Zebedee', 'Philbert', 'Collin', 'Colver', 'Marcile', 'Cherie', 'Janene', 'Ainslie', 'Bernardina', 'Ursula', 'Alene', 'Horatio', 'Edita', 'Sidnee', 'Gianna', 'Ashton', 'Cymbre', 'Adda', 'Charlena', 'Karly', 'York', 'Shanna', 'Tracie', 'Brook', 'Hilario', 'Darcy', 'Lisette', 'Jakie', 'Teodoro', 'Rochell', 'Jenn', 'Annadiana', 'Clint', 'Wilbur', 'Cariotta', 'Kinnie', 'Diarmid', 'Jocko', 'Mortie', 'Jarib', 'Westleigh', 'Mair', 'Trumaine', 'Emlyn', 'Abagael', 'Em', 'Dolores', 'Erina', 'Lou', 'Golda', 'Herold', 'Bryn', 'Christiane', 'Oralia', 'Bella', 'Kathi', 'Kerry', 'Lindsay', 'Claudetta', 'Manny', 'Cosette', 'Gordy', 'Jordan', 'Dean', 'Elaine', 'Andrey', 'Solly', 'Renie', 'Pepito', 'Godfree', 'Sabina', 'Liana', 'Stevana', 'Onfre', 'Hubert', 'Leslie', 'Chev', 'Caryn', 'Rollins', 'Adriane', 'Bealle', 'Catharine', 'Ulrich', 'Ikey']
+		letra = random.randint(0, len(letras)-1)
+		numero = random.randint(1,100)
+		self.nome = 'BEE-' + str(letras[letra]) + str(letra)
+
+	def __str__(self):
+		return self.nome
+
+class HQ:
+	def __init__(self, numero_abelhas, pontoAtual):
+		self.numero_abelhas = numero_abelhas
+		self.setNome()
+		self.pontoAtual = pontoAtual
+		self.pontoAtual.setObjeto(True)
+		self.abelhas = []
+		self.id = random.randint(1,1000)
+		self.criaAbelhas()
+		self.abelhasAtual = numero_abelhas
+
+	def criaAbelhas(self):
+		for iterador in range(0, self.numero_abelhas):
+			abelhaTemp = Abelha('Tropa', self.nome, self.pontoAtual, self.id)
+			self.abelhas.append(abelhaTemp)
+
+	def setNome(self):
+		letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+		letra = random.randint(0, len(letras)-1)
+		numero = random.randint(1,100)
+		self.nome =  'COL-' + str(letra) + str(letras[letra])
+
+	def lancaPelotao(self, evento):
+		if self.abelhasAtual < evento.intensidade:
+			return None
+		else:
+			pelotao = []
+			while len(pelotao) != evento.intensidade:
+				pelotao.append(self.abelhas.pop())
+			self.abelhasAtual = self.abelhasAtual - evento.intensidade
+			return pelotao
+
+
+	def __str__(self):
+		return self.nome
+
+class Evento:
+	def __init__(self, pontoAtual):
+		self.setIntensidadeRange()
+		self.setNome()
+		self.pontoAtual = pontoAtual
+		self.pontoAtual.setObjeto(True)
+
+	def setNome(self):
+		letras = ['Assalto', 'Briga', 'Corrida de Rua', 'Depredação', 'Extermínio', 'Fuga', 'Golpe de Estado', 'Hospital em Chamas', 'Individuo Suspeito', 'Joalheiria Roubada', 'Ladrão', 'Mulher em Trabalho de Parto', 'Navio Afundando', 'Operação Policial', 'PM na Área', 'Quadrilha', 'Resgate', 'Soldado Ferido', 'Tiroteio', 'Vítima de Acidente']
+		letra = random.randint(0, len(letras)-1)
+		self.nome =  str(letras[letra]) +str(letra)
+
+	def setIntensidadeRange(self):
+		self.intensidade = random.randint(1,3)
+		# Intensidade é sempre o número de envolvidos x3 que precisa para solucionar o problema
+		# self.range = random.randint(1,2)
+		self.range = 1
+
+	def __str__(self):
+		resultado = "| Intensidade: " + str(self.intensidade) 
+		resultado += " | Local: " + str(self.pontoAtual.nome)
+		return self.nome + resultado
+
 def caminhaAleatoriamente(formiga, g):
 		# print(formiga.pontoAtual.numero)
 		pontoAntigo = formiga.pontoAtual
 		# print(g.neighbors(pontoAntigo.numero))
 		caminhos2 = g.neighbors(pontoAntigo.numero)
+		# Filtra por caminhos que estejam livres
+		# caminhos2 = [caminho for caminho in caminhos2 if g.node[caminho]['ponto'].objeto == False]
 		caminhoEscolhido2 = random.choice(caminhos2)
 		# print(caminhoEscolhido2)
 		formiga.pontoAtual.setObjeto(False)
@@ -152,12 +230,56 @@ def caminhaAleatoriamente(formiga, g):
 		g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].aumentaFeromonio()
 		print(str(pontoAntigo.numero) + " -> " + str(formiga.pontoAtual.numero), str(g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho']), g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].feromonio)
 
+def caminhaOtimizadoAbelha(abelha, g):
+	# print(formiga.pontoAtual.numero)
+	pontoAntigo = abelha.pontoAtual
+	print(abelha.pontoAtual.numero)
+	abelha.pontoAtual.setObjeto(False)
+	# print(g.neighbors(pontoAntigo.numero))
+	caminhos2 = g.neighbors(pontoAntigo.numero)
+	print(g.neighbors(pontoAntigo.numero))
+	# g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho']
+	feromoniosCaminhos = [g[pontoAntigo.numero][numero_vertice]['caminho'].feromonio for numero_vertice in caminhos2]
+	print(feromoniosCaminhos)
+	abelha.pontoAtual = g.node[caminhos2[feromoniosCaminhos.index(max(feromoniosCaminhos))]]['ponto']
+	abelha.pontoAtual.setObjeto(True)
+	print(abelha.pontoAtual.numero)
+
+def caminhaACO(formiga, g):
+	formiga.pontoAtual.setObjeto(False)
+	pontoAntigo = formiga.pontoAtual
+	print(formiga.pontoAtual.numero)
+	caminhos2 = g.neighbors(pontoAntigo.numero)
+	# Calcula a probabilidade baseado no feromonio do caminho e a sua distancia
+	feromoniosCaminhos = [g[pontoAntigo.numero][numero_vertice]['caminho'].feromonio for numero_vertice in caminhos2]
+	probabilidades = [(math.pow(g[pontoAntigo.numero][numero_vertice]['caminho'].feromonio, g.graph['alfa']) * math.pow(1.0 / g[pontoAntigo.numero][numero_vertice]['caminho'].distancia, g.graph['beta'])) for numero_vertice in caminhos2]
+	# probabilidade = (math.pow(caminho.feromonio, alfa) * math.pow(1.0 / caminho.distancia, beta))
+	# print(caminhos2)
+	# print(feromoniosCaminhos)
+	# print(probabilidades)
+	somatoria_probabilidades = sum(float(prob) for prob in probabilidades)
+	# print(somatoria_probabilidades)
+
+	ratio_probabilidades = [probabilidade/somatoria_probabilidades for probabilidade in probabilidades]
+	# print(ratio_probabilidades)
+	# somatoria_ratio_probabilidades = sum(float(prob) for prob in ratio_probabilidades)
+	# print(somatoria_ratio_probabilidades)
+
+	formiga.pontoAtual = g.node[caminhos2[ratio_probabilidades.index(max(ratio_probabilidades))]]['ponto']
+	formiga.pontoAtual.setObjeto(True)
+	g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].aumentaFeromonio()
+	print(str(pontoAntigo.numero) + " -> " + str(formiga.pontoAtual.numero), str(g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho']), g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].feromonio)
+
+########################
 #-------------------- MAIN --------------------#
+########################
 if __name__ == "__main__":
 	n_vertices = 15
 	chance_aresta = 0.4
 	# Cria gráfico aleatório com n_vertices e % de existir uma aresta entre dois vertices
 	g = nx.fast_gnp_random_graph(n_vertices, chance_aresta)
+	g.graph['alfa'] = 0.5
+	g.graph['beta'] = 1.0
 	
 	# Verifica se vertíce é conexo
 	while(nx.is_connected(g) is not True):
@@ -180,21 +302,22 @@ if __name__ == "__main__":
 		# Criamos um caminho que liga 
 		caminho = Caminho(g.node[aresta[0]]['ponto'], g.node[aresta[1]]['ponto'])
 		g[aresta[0]][aresta[1]]['caminho'] = caminho
-		# print(caminho)
-		# print(g[aresta[0]][aresta[1]]['caminho'].feromonio)
+		print(caminho)
+		print(g[aresta[0]][aresta[1]]['caminho'].feromonio)
 
 	# Escolhe um nó aleatório para criar a formiga
 	no_ale = random.randint(1,4)
 	# Cria uma formiga do tipo patrulha que tem como ponto, o ponto indicado aleatóriamente pelo número
 	formiga1 = Formiga('PATRULHA', g.node[no_ale]['ponto'])
-	print('FORMIGA 1', formiga1.pontoAtual.numero)
+	print('FORMIGA NINAU', formiga1.pontoAtual.numero)
 	# Inicializamos a formiga no grafo, criando o atributo formiga dentro do vertice que antes não havia nada
 	g.node[no_ale]['formiga'] = formiga1
 	
 	for iterador in range(1,10):
 		for no in g.nodes():
 			if(g.node[no]['formiga'] is not None):
-				caminhaAleatoriamente(g.node[no]['formiga'], g)
+				# caminhaAleatoriamente(g.node[no]['formiga'], g)
+				caminhaACO(g.node[no]['formiga'], g)
 
 	# print(g.node[no_ale]['formiga'])
 
@@ -205,7 +328,13 @@ if __name__ == "__main__":
 	# Mostra todo os vizinhos de um nó aleatório
 	# print(no_ale, g.neighbors(no_ale))
 
+	# no_ale = random.randint(6,10)
+	# print('------------ABELHAS-------------')
+	# abelha1 = Abelha('BATEDORA',1,g.node[no_ale]['ponto'])
+	# caminhaOtimizadoAbelha(abelha1, g)
+
 	nx.draw(g, with_labels=True)
 	# pos=nx.spring_layout(g)
 	# nx.draw_networkx_labels(g, pos, font_size=20,font_family='sans-serif')
+	plt.savefig("grafico.png")
 	plt.show()
