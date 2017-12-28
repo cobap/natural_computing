@@ -74,70 +74,6 @@ class Formiga:
 		numero = random.randint(1,100)
 		self.nome = 'ANT-' + str(letras[letra]) + str(letra)
 
-	def caminhaACO(self, caminhos, alfa, beta):
-		# print('FORMIGA '+self.nome + ' |	LUGAR '+self.pontoAtual.nome)
-		caminhos = [caminho for caminho in caminhos if caminho.pontoA.nome == self.pontoAtual.nome or caminho.pontoB.nome == self.pontoAtual.nome]
-		# print('AFTER-----------------------------------')
-		#ENTENDER PQ PRECISA DISSO
-		for caminho in caminhos:
-			if caminho.feromonio == 0:
-				caminho.feromonio = 0.0001
-			# print("  ", str(caminho))
-
-		# Vetor que será armazenada as probabilidades dos caminhos
-		probabilidades = []
-		for caminho in caminhos:
-			# Calcula a probabilidade baseado no feromonio do caminho e a sua distancia
-			probabilidade = (math.pow(caminho.feromonio, alfa) * math.pow(1.0 / caminho.distancia, beta))
-			# print('FERO, ALFA, DIST, BETA', caminho.feromonio, alfa, 1.0/caminho.distancia, beta)
-			# print('PROB', probabilidade)
-			probabilidades.append(probabilidade)
-		# Somatório de todas as probabilidades
-		somatoria_probabilidades = sum(float(prob) for prob in probabilidades)
-		
-		caminho_escolhido = 0
-		index_escolhido = -1
-		#Para todos as probabilidades calculadas
-		for index, probabilidade in zip(range(len(probabilidades)), probabilidades):
-			# print('Caminho', str(caminhos[index]) ,'Probabilidade: ', probabilidade/somatoria_probabilidades, 'Distancia', caminhos[index].distancia)
-			# Selecionada caminho escolhido como maior caso sua probabilidade seja a maior de todas
-			# print('############################')
-			# print(probabilidade)
-			# print(somatoria_probabilidades)
-			if((probabilidade/somatoria_probabilidades) > caminho_escolhido):
-				# Recalcula o caminho escolhido
-				caminho_escolhido = (probabilidade/somatoria_probabilidades)
-				# Define o index
-				# print('MELHRO INDEX É', index)
-				index_escolhido = index
-			# print('############################')
-
-		# print('MELHOR PONTO - INDEX', index_escolhido)
-		# print('Caminho', str(caminhos[index_escolhido]) ,'Probabilidade: ', probabilidades[index_escolhido]/somatoria_probabilidades, 'Distancia', caminhos[index_escolhido].distancia)
-		
-		if(index_escolhido == -1):
-			# print('caminhando aleatóriamente')
-			return self.caminhaAleatoriamente(caminhos)
-
-		# Sai do vertice atual
-		self.pontoAtual.setObjeto(False)
-		# Define o vertice atual como o novo vertice - de onde foi do ponto A para o ponto B
-		if(self.pontoAtual.nome == str(caminhos[index_escolhido])):
-			self.pontoAtual = caminhos[index_escolhido].pontoB
-		else:
-			self.pontoAtual = caminhos[index_escolhido].pontoA
-		# Define que esta ocupando o ponto B agora
-		self.pontoAtual.setObjeto(True)
-		# Define novo feromonio (por enquanto aleatóriamente)
-		# print(str(caminhos[index_escolhido]))
-		# print('FEROMONIO ANTIGO: '+ str(caminhos[index_escolhido].feromonio))
-		# caminhos[index_escolhido].setFeromonio((random.randint(5,9)/10000.0) + (random.randint(1,9)/100000.0))
-		caminhos[index_escolhido].aumentaFeromonio()
-		# print('FEROMONIO NOVO: '+ str(caminhos[index_escolhido].feromonio))
-
-		# return index, self.getCaminhos()[index], caminho_escolhido
-		return index, caminho_escolhido
-
 class Abelha:
 	def __init__(self, funcao, id_hq, pontoAtual):
 		self.funcao = funcao
@@ -214,63 +150,210 @@ class Evento:
 		resultado += " | Local: " + str(self.pontoAtual.nome)
 		return self.nome + resultado
 
-def caminhaAleatoriamente(formiga, g):
+class Cidade:
+	def __init__(self, n_vertices, chance_aresta, alfa, beta, iteracoes):
+		# Cria gráfico aleatório com n_vertices e % de existir uma aresta entre dois vertices
+		self.n_vertices = n_vertices
+		g = nx.fast_gnp_random_graph(n_vertices, chance_aresta)
+		# Verifica se vertíce é conexo
+		while(nx.is_connected(g) is not True):
+			# Caso não seja, o recrie até que seja - comoqueremos facilitar as coisas, só podemos avançar com um vertice que permite andar por uma aresta
+			g = nx.fast_gnp_random_graph(5, 0.4)
+
+		g.graph['alfa'] = alfa
+		g.graph['beta'] = beta
+
+		# Para cada nó dentro do grafo
+		for no in g.nodes():
+			# Criamos o ponto que irá definir aquele nó - sendo um número com uma coordenada aleatória entre 1~10. Recebe também o numero do vertice
+			ponto = Ponto(random.randint(1,10), random.randint(1,10), no)
+			# Definimos o Ponto como a variável 'ponto' dentro do verdadeiro nó do grafo
+			g.node[no]['ponto'] = ponto
+			# Também definimos que começa sem nenhuma formiga
+			g.node[no]['formiga'] = None
+			# Damos um print no nome real vs nome ficticio do nó - para podermos comparar depois
+			print(no, g.node[no]['ponto'].nome, g.node[no]['ponto'].x, g.node[no]['ponto'].y)
+
+		# Para cada aresta dentro do grafo
+		for aresta in g.edges():
+			# Criamos um caminho que liga 
+			caminho = Caminho(g.node[aresta[0]]['ponto'], g.node[aresta[1]]['ponto'])
+			g[aresta[0]][aresta[1]]['caminho'] = caminho
+			print(caminho)
+			print(g[aresta[0]][aresta[1]]['caminho'].feromonio)
+
+		self.grafo = g
+		self.iteracoes = iteracoes
+		self.formigas = []
+		self.eventos = []
+		self.hqs = []
+		self.mediaAbelhas = random.randint(2,4)
+
+		nx.draw(g, with_labels=True)
+		plt.savefig("grafico.png")
+		plt.show()
+
+	def getPontoAleatorio(self):
+		return g.node[random.randint(1, self.n_vertices)]['ponto']
+
+	def criaFormigas(self):
+		# O número de formigas sempre será 1/3 do número de vertices
+		self.qtdFormigas = int(round((float) (self.numero_pontos * 1)/3))
+		# print('QTD DE FORMIGAS: ', self.qtdFormigas)
+		for formiga in range(self.qtdFormigas):
+			# Crie uma formiga do tipo patrulha e adicione em um ponto onde não exista nenhuma outra classe
+			no_aleatorio = self.getPontoAleatorio()
+			formiga1 = Formiga('PATRULHA', no_aleatorio)
+			g.node[no_aleatorio]['formiga'] = formiga1
+			print(formiga1.nome, formiga1.pontoAtual.numero)
+			self.formigas.append(g.node[no_aleatorio]['formiga'])
+
+	def criaEvento(self):
+		no_aleatorio = self.getPontoAleatorio()
+		return Evento(no_aleatorio)
+
+	def criaHQs(self):
+		# Número de HQ é sempre 1/5 do número de vertices do grafo
+		self.qtdHQs = int(round((float) (self.numero_pontos * 1)/5))
+		print('QTD DE HQs: ', self.qtdHQs)
+		print('QTD DE Abelhas: ', self.mediaAbelhas)
+		# Adiciona todos os HQ criados dentro da cidade
+		for hq in range(self.qtdHQs):
+			no_aleatorio = self.getPontoAleatorio()
+			hqTemp = HQ(self.mediaAbelhas, no_aleatorio)
+			self.hqs.append(hqTemp)
+			print('NOME ', hqTemp.nome, " | LOCAL: ", hqTemp.pontoAtual.nome)
+
+	def caminhaFormigaAleatoriamente(formiga, g):
+			# print(formiga.pontoAtual.numero)
+			pontoAntigo = formiga.pontoAtual
+			# print(g.neighbors(pontoAntigo.numero))
+			caminhos2 = g.neighbors(pontoAntigo.numero)
+			# Filtra por caminhos que estejam livres
+			# caminhos2 = [caminho for caminho in caminhos2 if g.node[caminho]['ponto'].objeto == False]
+			caminhoEscolhido2 = random.choice(caminhos2)
+			# print(caminhoEscolhido2)
+			formiga.pontoAtual.setObjeto(False)
+			# print(g.node[caminhoEscolhido2]['ponto'])
+			formiga.pontoAtual = g.node[caminhoEscolhido2]['ponto']
+			formiga.pontoAtual.setObjeto(True)
+			g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].aumentaFeromonio()
+			print(str(pontoAntigo.numero) + " -> " + str(formiga.pontoAtual.numero), str(g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho']), g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].feromonio)
+
+	def caminhaAbelhaOtimizado(abelha, g):
 		# print(formiga.pontoAtual.numero)
-		pontoAntigo = formiga.pontoAtual
+		pontoAntigo = abelha.pontoAtual
+		print(abelha.pontoAtual.numero)
+		abelha.pontoAtual.setObjeto(False)
 		# print(g.neighbors(pontoAntigo.numero))
 		caminhos2 = g.neighbors(pontoAntigo.numero)
-		# Filtra por caminhos que estejam livres
-		# caminhos2 = [caminho for caminho in caminhos2 if g.node[caminho]['ponto'].objeto == False]
-		caminhoEscolhido2 = random.choice(caminhos2)
-		# print(caminhoEscolhido2)
+		print(g.neighbors(pontoAntigo.numero))
+		# g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho']
+		feromoniosCaminhos = [g[pontoAntigo.numero][numero_vertice]['caminho'].feromonio for numero_vertice in caminhos2]
+		print(feromoniosCaminhos)
+		abelha.pontoAtual = g.node[caminhos2[feromoniosCaminhos.index(max(feromoniosCaminhos))]]['ponto']
+		abelha.pontoAtual.setObjeto(True)
+		print(abelha.pontoAtual.numero)
+
+	def caminhaFormigaACO(formiga, g):
+		print(formiga.nome)
 		formiga.pontoAtual.setObjeto(False)
-		# print(g.node[caminhoEscolhido2]['ponto'])
-		formiga.pontoAtual = g.node[caminhoEscolhido2]['ponto']
+		pontoAntigo = formiga.pontoAtual
+		print(formiga.pontoAtual.numero)
+		caminhos2 = g.neighbors(pontoAntigo.numero)
+		# Calcula a probabilidade baseado no feromonio do caminho e a sua distancia
+		feromoniosCaminhos = [g[pontoAntigo.numero][numero_vertice]['caminho'].feromonio for numero_vertice in caminhos2]
+		probabilidades = [(math.pow(g[pontoAntigo.numero][numero_vertice]['caminho'].feromonio, g.graph['alfa']) * math.pow(1.0 / g[pontoAntigo.numero][numero_vertice]['caminho'].distancia, g.graph['beta'])) for numero_vertice in caminhos2]
+		# probabilidade = (math.pow(caminho.feromonio, alfa) * math.pow(1.0 / caminho.distancia, beta))
+		print(caminhos2)
+		print(feromoniosCaminhos)
+		# print(probabilidades)
+		somatoria_probabilidades = sum(float(prob) for prob in probabilidades)
+		# print(somatoria_probabilidades)
+
+		ratio_probabilidades = [probabilidade/somatoria_probabilidades for probabilidade in probabilidades]
+		print(ratio_probabilidades)
+		# somatoria_ratio_probabilidades = sum(float(prob) for prob in ratio_probabilidades)
+		# print(somatoria_ratio_probabilidades)
+		print(ratio_probabilidades.index(max(ratio_probabilidades)))
+
+		formiga.pontoAtual = g.node[caminhos2[ratio_probabilidades.index(max(ratio_probabilidades))]]['ponto']
 		formiga.pontoAtual.setObjeto(True)
 		g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].aumentaFeromonio()
-		print(str(pontoAntigo.numero) + " -> " + str(formiga.pontoAtual.numero), str(g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho']), g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].feromonio)
+		print(formiga.nome, str(pontoAntigo.numero) + " -> " + str(formiga.pontoAtual.numero), str(g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho']), g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].feromonio)
 
-def caminhaOtimizadoAbelha(abelha, g):
-	# print(formiga.pontoAtual.numero)
-	pontoAntigo = abelha.pontoAtual
-	print(abelha.pontoAtual.numero)
-	abelha.pontoAtual.setObjeto(False)
-	# print(g.neighbors(pontoAntigo.numero))
-	caminhos2 = g.neighbors(pontoAntigo.numero)
-	print(g.neighbors(pontoAntigo.numero))
-	# g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho']
-	feromoniosCaminhos = [g[pontoAntigo.numero][numero_vertice]['caminho'].feromonio for numero_vertice in caminhos2]
-	print(feromoniosCaminhos)
-	abelha.pontoAtual = g.node[caminhos2[feromoniosCaminhos.index(max(feromoniosCaminhos))]]['ponto']
-	abelha.pontoAtual.setObjeto(True)
-	print(abelha.pontoAtual.numero)
+	#Problemas para criar eventos em vertices vazios
+	def iniciaCidade(self):
+		# Inicia cidade - criando formigas, HQs, eventos, etc...
+		# random.seed(42)
+		iterador = 1
+		self.criaFormigas()
+		self.criaHQs()
+		pelotoes = {}
+		# MAIN 
+		while(iterador <= self.iteracoes):
+			#Para cada loop de interação, ande com as formigas aleatóriamente
+			for formiga in self.formigas:
+				# formiga.caminhaAleatoriamente(self.caminhos)
+				self.caminhaFormigaACO(formiga, self.grafo)
 
-def caminhaACO(formiga, g):
-	print(formiga.nome)
-	formiga.pontoAtual.setObjeto(False)
-	pontoAntigo = formiga.pontoAtual
-	print(formiga.pontoAtual.numero)
-	caminhos2 = g.neighbors(pontoAntigo.numero)
-	# Calcula a probabilidade baseado no feromonio do caminho e a sua distancia
-	feromoniosCaminhos = [g[pontoAntigo.numero][numero_vertice]['caminho'].feromonio for numero_vertice in caminhos2]
-	probabilidades = [(math.pow(g[pontoAntigo.numero][numero_vertice]['caminho'].feromonio, g.graph['alfa']) * math.pow(1.0 / g[pontoAntigo.numero][numero_vertice]['caminho'].distancia, g.graph['beta'])) for numero_vertice in caminhos2]
-	# probabilidade = (math.pow(caminho.feromonio, alfa) * math.pow(1.0 / caminho.distancia, beta))
-	print(caminhos2)
-	print(feromoniosCaminhos)
-	# print(probabilidades)
-	somatoria_probabilidades = sum(float(prob) for prob in probabilidades)
-	# print(somatoria_probabilidades)
+			if iterador % 3 == 0:
+				evento = self.criaEvento()
+				print('Evento Criado - ', evento)
+				g.node[no_aleatorio]['evento'] = evento
+				self.eventos.append(g.node[no_aleatorio]['evento'])
+				hqSelecionado = self.hqs[0]
+				distanciaEvento = math.sqrt(pow(hqSelecionado.pontoAtual.x - evento.pontoAtual.x ,2) + pow(hqSelecionado.pontoAtual.y - evento.pontoAtual.y ,2))
+				for hq in self.hqs:
+					distanciaTemp = math.sqrt(pow(hq.pontoAtual.x - evento.pontoAtual.x ,2) + pow(hq.pontoAtual.y - evento.pontoAtual.y ,2)) 
+					if distanciaTemp < distanciaEvento:
+						distanciaEvento = distanciaTemp
+						hqSelecionado = hq
+				# print(hqSelecionado)
+				if(hqSelecionado.abelhasAtual == 0):
+					pass
+				else:
+					# print('1N ABELHAS:', hqSelecionado.abelhasAtual, " HQ NAME >> ", hqSelecionado.nome)
+					print("EVENTO:" , evento.nome, 'INTENSIDADE: ', evento.intensidade, 'LOCAL', evento.pontoAtual.nome)
+					pelotoes[evento.nome] = hqSelecionado.lancaPelotao(evento)
+					while(pelotoes[evento.nome] == None):
+						# print('loop infinito')
+						evento.intensidade = evento.intensidade - 1
+						pelotoes[evento.nome] = hqSelecionado.lancaPelotao(evento)
+					self.eventos.append(evento)
+					# print('2N ABELHAS:', hqSelecionado.abelhasAtual)
+					print('ABELHAS INDO PARA EVENTO')
+					for abelha in pelotoes[evento.nome]:
+						print abelha
+						pass
+					# print pelotoes[evento.nome]
+			eventos_mortos = []
+			for evento in self.eventos:
+				# print('RODA EVENTO-----------------------')
+				# print("EVENTO:" , evento.nome)
+				# print('LEN', pelotoes[evento.nome])
+				abelhaLider = pelotoes[evento.nome]
+				# print('preparando abelha lider')
+				abelhaLider[0].caminhaOtimizado(self.caminhos)
+				# print('abelha lider andando')
 
-	ratio_probabilidades = [probabilidade/somatoria_probabilidades for probabilidade in probabilidades]
-	print(ratio_probabilidades)
-	# somatoria_ratio_probabilidades = sum(float(prob) for prob in ratio_probabilidades)
-	# print(somatoria_ratio_probabilidades)
-	print(ratio_probabilidades.index(max(ratio_probabilidades)))
+				#Caso tenha chego no evento
+				if(abelhaLider[0].pontoAtual == evento.pontoAtual):
+					print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!CHEGOU AO EVENTO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+					eventos_mortos.append(evento)
+					self.eventos.remove(evento)
+					print('Adicionado abelha ao HQ')
+					for abelha in pelotoes[evento.nome]:
+						abelha.pontoAtual.setObjeto(False)
+						for hq in self.hqs:
+							if hq.id == abelha.id_hq:
+								abelha.pontoAtual = hq.pontoAtual
+								hq.abelhasAtual = hq.abelhasAtual+1
+								hq.abelhas.append(abelha)
+			# print('NUMERO EVENTOS: ', len(self.eventos))
 
-	formiga.pontoAtual = g.node[caminhos2[ratio_probabilidades.index(max(ratio_probabilidades))]]['ponto']
-	formiga.pontoAtual.setObjeto(True)
-	g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].aumentaFeromonio()
-	print(str(pontoAntigo.numero) + " -> " + str(formiga.pontoAtual.numero), str(g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho']), g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].feromonio)
+			iterador = iterador + 1
+
 
 ########################
 #-------------------- MAIN --------------------#
@@ -278,56 +361,10 @@ def caminhaACO(formiga, g):
 if __name__ == "__main__":
 	n_vertices = 15
 	chance_aresta = 0.4
-	# Cria gráfico aleatório com n_vertices e % de existir uma aresta entre dois vertices
-	g = nx.fast_gnp_random_graph(n_vertices, chance_aresta)
-	g.graph['alfa'] = 0.5
-	g.graph['beta'] = 1.0
-	
-	# Verifica se vertíce é conexo
-	while(nx.is_connected(g) is not True):
-		# Caso não seja, o recrie até que seja - comoqueremos facilitar as coisas, só podemos avançar com um vertice que permite andar por uma aresta
-		g = nx.fast_gnp_random_graph(5, 0.4)	
+	alfa = 0.5
+	beta = 1.0
 
-	# Para cada nó dentro do grafo
-	for no in g.nodes():
-		# Criamos o ponto que irá definir aquele nó - sendo um número com uma coordenada aleatória entre 1~10. Recebe também o numero do vertice
-		ponto = Ponto(random.randint(1,10), random.randint(1,10), no)
-		# Definimos o Ponto como a variável 'ponto' dentro do verdadeiro nó do grafo
-		g.node[no]['ponto'] = ponto
-		# Também definimos que começa sem nenhuma formiga
-		g.node[no]['formiga'] = None
-		# Damos um print no nome real vs nome ficticio do nó - para podermos comparar depois
-		print(no, g.node[no]['ponto'].nome)
-
-	# Para cada aresta dentro do grafo
-	for aresta in g.edges():
-		# Criamos um caminho que liga 
-		caminho = Caminho(g.node[aresta[0]]['ponto'], g.node[aresta[1]]['ponto'])
-		g[aresta[0]][aresta[1]]['caminho'] = caminho
-		print(caminho)
-		print(g[aresta[0]][aresta[1]]['caminho'].feromonio)
-
-	# Escolhe um nó aleatório para criar a formiga
-	no_ale = random.randint(1,4)
-	no_ale2 = random.randint(5,10)
-	no_ale3 = random.randint(10,14)
-	# Cria uma formiga do tipo patrulha que tem como ponto, o ponto indicado aleatóriamente pelo número
-	formiga1 = Formiga('PATRULHA', g.node[no_ale]['ponto'])
-	formiga2 = Formiga('PATRULHA', g.node[no_ale2]['ponto'])
-	formiga3 = Formiga('PATRULHA', g.node[no_ale3]['ponto'])
-	print(formiga1.nome, formiga1.pontoAtual.numero)
-	print(formiga2.nome, formiga2.pontoAtual.numero)
-	print(formiga3.nome, formiga3.pontoAtual.numero)
-	# Inicializamos a formiga no grafo, criando o atributo formiga dentro do vertice que antes não havia nada
-	g.node[no_ale]['formiga'] = formiga1
-	g.node[no_ale2]['formiga'] = formiga2
-	g.node[no_ale3]['formiga'] = formiga3
-	
-	for iterador in range(1,10):
-		for no in g.nodes():
-			if(g.node[no]['formiga'] is not None):
-				# caminhaAleatoriamente(g.node[no]['formiga'], g)
-				caminhaACO(g.node[no]['formiga'], g)
+	cidade = Cidade(n_vertices,chance_aresta, alfa, beta, 1)
 
 	# print(g.node[no_ale]['formiga'])
 
@@ -343,8 +380,5 @@ if __name__ == "__main__":
 	# abelha1 = Abelha('BATEDORA',1,g.node[no_ale]['ponto'])
 	# caminhaOtimizadoAbelha(abelha1, g)
 
-	nx.draw(g, with_labels=True)
 	# pos=nx.spring_layout(g)
 	# nx.draw_networkx_labels(g, pos, font_size=20,font_family='sans-serif')
-	plt.savefig("grafico.png")
-	plt.show()
