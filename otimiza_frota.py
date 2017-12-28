@@ -39,6 +39,7 @@ class Caminho:
 		self.pontoB = pontoB
 		self.distancia = 0
 		self.feromonio = 1.0+ (random.randint(5,9)/10000.0) + (random.randint(1,9)/100000.0)
+		self.feromonioInicial = self.feromonio
 		self.setDistancia(self.pontoA, self.pontoB)
 
 	def setDistancia(self, pontoA, pontoB):
@@ -50,11 +51,16 @@ class Caminho:
 		self.feromonio = novoFeromonio
 
 	def aumentaFeromonio(self):
-		temp = (float) (self.feromonio/2.0)
-		self.feromonio = (random.randint(5,9)/10000.0) + (random.randint(1,9)/100000.0) + temp
+		# temp = (float) (self.feromonio/2.0)
+		# self.feromonio = (random.randint(5,9)/10000.0) + (random.randint(1,9)/100000.0) + temp
+		fator_aumento = 0.1
+		self.feromonio = (1 - fator_aumento) * self.feromonio + self.feromonioInicial
 
 	def decaiFeromonio(self):
-		self.feromonio = (float) (self.feromonio/3.0)
+		# self.feromonio = (float) (self.feromonio/3.0)
+		fator_decaimento = 0.1
+		# self.feromonio = (1 - fator_decaimento) * self.feromonio + fator_decaimento * cost_best_solution
+		self.feromonio = (1 - fator_decaimento) * self.feromonio + self.feromonioInicial
 
 	def __str__(self):
 		return('CAMINHO ' + self.pontoA.nome + ' - ' + self.pontoB.nome)
@@ -202,6 +208,7 @@ class Cidade:
 		self.eventos = []
 		self.hqs = []
 		self.mediaAbelhas = random.randint(2,4)
+		self.qtdFormigasIndex = 3
 
 		nx.draw(g, with_labels=True)
 		plt.savefig("grafico.png")
@@ -212,7 +219,7 @@ class Cidade:
 
 	def criaFormigas(self):
 		# O número de formigas sempre será 1/3 do número de vertices
-		self.qtdFormigas = int(round((float) (self.n_vertices * 1)/3))
+		self.qtdFormigas = int(round((float) (self.n_vertices * 1)/self.qtdFormigasIndex))
 		print('QTD DE FORMIGAS: ', self.qtdFormigas)
 		formigas_temp = [Formiga('PATRULHA', self.getPontoAleatorio()) for i in range(self.qtdFormigas)]
 
@@ -257,17 +264,18 @@ class Cidade:
 	def caminhaAbelhaOtimizado(self, abelha, g):
 		# print(formiga.pontoAtual.numero)
 		pontoAntigo = abelha.pontoAtual
-		print(abelha.pontoAtual.numero)
+		# print(abelha.pontoAtual.numero)
 		abelha.pontoAtual.setObjeto(False)
 		# print(g.neighbors(pontoAntigo.numero))
 		caminhos2 = g.neighbors(pontoAntigo.numero)
-		print(g.neighbors(pontoAntigo.numero))
+		# print(g.neighbors(pontoAntigo.numero))
 		# g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho']
 		feromoniosCaminhos = [g[pontoAntigo.numero][numero_vertice]['caminho'].feromonio for numero_vertice in caminhos2]
-		print(feromoniosCaminhos)
+		# print(feromoniosCaminhos)
 		abelha.pontoAtual = g.node[caminhos2[feromoniosCaminhos.index(max(feromoniosCaminhos))]]['ponto']
 		abelha.pontoAtual.setObjeto(True)
-		print(abelha.pontoAtual.numero)
+		# print(abelha.pontoAtual.numero)
+		print(abelha.nome, str(pontoAntigo.numero) + " -> " + str(abelha.pontoAtual.numero), str(g[pontoAntigo.numero][abelha.pontoAtual.numero]['caminho']), g[pontoAntigo.numero][abelha.pontoAtual.numero]['caminho'].feromonio)
 
 	def caminhaFormigaACO(self, formiga, g):
 		# print(formiga.nome)
@@ -318,7 +326,6 @@ class Cidade:
 		print('ABELHAS PRONTAS PARA O ATAQUE ->->')
 		for abelha in pelotoes[evento.nome]:
 			print abelha
-			pass
 
 	#Problemas para criar eventos em vertices vazios
 	def iniciaCidade(self):
@@ -352,7 +359,7 @@ class Cidade:
 				if(hqSelecionado.abelhasAtual == 0):
 					pass
 				else:
-					print("EVENTO: " , evento.nome, 'INTENSIDADE: ', evento.intensidade, 'LOCAL', evento.pontoAtual.numero)
+					print("EVENTO: " , evento.nome, 'INTENSIDADE: ', evento.intensidade, 'LOCAL', evento.pontoAtual.numero, "ITER", iterador)
 					self.acionaPelotaoParaAtaque(pelotoes, hqSelecionado, evento)
 					
 			eventos_mortos = []
@@ -363,6 +370,7 @@ class Cidade:
 				#Caso tenha chego no evento
 				if(abelhaLider[0].pontoAtual == evento.pontoAtual):
 					print('PELOTAO CHEGOU AO EVENTO!')
+					print("EVENTO: " , evento.nome, 'INTENSIDADE: ', evento.intensidade, 'LOCAL', evento.pontoAtual.numero, "ITER", iterador)
 					eventos_mortos.append(evento)
 					self.eventos.remove(evento)
 
@@ -387,10 +395,10 @@ class Cidade:
 if __name__ == "__main__":
 	n_vertices = 15
 	chance_aresta = 0.4
-	alfa = 0.5
-	beta = 1.0
+	alfa = 0.1
+	beta = 2.5
 
-	cidade = Cidade(n_vertices,chance_aresta, alfa, beta, 3)
+	cidade = Cidade(n_vertices,chance_aresta, alfa, beta, 5)
 	cidade.iniciaCidade()
 
 	# print(g.node[no_ale]['formiga'])
