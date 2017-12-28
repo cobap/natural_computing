@@ -38,11 +38,13 @@ class Caminho:
 		self.pontoA = pontoA
 		self.pontoB = pontoB
 		self.distancia = 0
-		self.feromonio = (random.randint(5,9)/10000.0) + (random.randint(1,9)/100000.0)
+		self.feromonio = 1.0+ (random.randint(5,9)/10000.0) + (random.randint(1,9)/100000.0)
 		self.setDistancia(self.pontoA, self.pontoB)
 
 	def setDistancia(self, pontoA, pontoB):
 		self.distancia = math.sqrt(pow(pontoA.x - pontoB.x ,2) + pow(pontoA.y - pontoB.y ,2))
+		if self.distancia == 0:
+			self.distancia = 0.001
 
 	def setFeromonio(self, novoFeromonio):
 		self.feromonio = novoFeromonio
@@ -98,9 +100,12 @@ class HQ:
 		self.pontoAtual = pontoAtual
 		self.pontoAtual.setObjeto(True)
 		self.abelhas = []
-		self.id = random.randint(1,1000)
+		self.id = 0
 		self.criaAbelhas()
 		self.abelhasAtual = numero_abelhas
+
+	def setID(self, new_id):
+		self.id = new_id
 
 	def criaAbelhas(self):
 		for iterador in range(0, self.numero_abelhas):
@@ -123,6 +128,15 @@ class HQ:
 			self.abelhasAtual = self.abelhasAtual - evento.intensidade
 			return pelotao
 
+	def retornaPelotao(self, pelotao):
+		print('ABELHAS RETORNANDO AO HQ')
+		for abelha in pelotao:
+			abelha.pontoAtual.setObjeto(False)
+			for hq in self.hqs:
+				if hq.id == abelha.id_hq:
+					abelha.pontoAtual = hq.pontoAtual
+					hq.abelhasAtual = hq.abelhasAtual+1
+					hq.abelhas.append(abelha)
 
 	def __str__(self):
 		return self.nome
@@ -147,7 +161,7 @@ class Evento:
 
 	def __str__(self):
 		resultado = "| Intensidade: " + str(self.intensidade) 
-		resultado += " | Local: " + str(self.pontoAtual.nome)
+		resultado += " | Local: " + str(self.pontoAtual.numero)
 		return self.nome + resultado
 
 class Cidade:
@@ -179,8 +193,8 @@ class Cidade:
 			# Criamos um caminho que liga 
 			caminho = Caminho(g.node[aresta[0]]['ponto'], g.node[aresta[1]]['ponto'])
 			g[aresta[0]][aresta[1]]['caminho'] = caminho
-			print(caminho)
-			print(g[aresta[0]][aresta[1]]['caminho'].feromonio)
+			# print(caminho)
+			# print(g[aresta[0]][aresta[1]]['caminho'].feromonio)
 
 		self.g = g
 		self.iteracoes = iteracoes
@@ -221,7 +235,8 @@ class Cidade:
 			no_aleatorio = self.getPontoAleatorio()
 			hqTemp = HQ(self.mediaAbelhas, no_aleatorio)
 			self.hqs.append(hqTemp)
-			print('NOME ', hqTemp.nome, " | LOCAL: ", hqTemp.pontoAtual.nome)
+			hqTemp.setID(self.hqs.index(hqTemp))
+			print('NOME ', hqTemp.nome, " | LOCAL: ", hqTemp.pontoAtual.numero)
 
 	def caminhaFormigaAleatoriamente(self, formiga, g):
 			# print(formiga.pontoAtual.numero)
@@ -255,31 +270,55 @@ class Cidade:
 		print(abelha.pontoAtual.numero)
 
 	def caminhaFormigaACO(self, formiga, g):
-		print(formiga.nome)
+		# print(formiga.nome)
 		formiga.pontoAtual.setObjeto(False)
 		pontoAntigo = formiga.pontoAtual
-		print(formiga.pontoAtual.numero)
+		# print(formiga.pontoAtual.numero)
 		caminhos2 = g.neighbors(pontoAntigo.numero)
 		# Calcula a probabilidade baseado no feromonio do caminho e a sua distancia
 		feromoniosCaminhos = [g[pontoAntigo.numero][numero_vertice]['caminho'].feromonio for numero_vertice in caminhos2]
 		probabilidades = [(math.pow(g[pontoAntigo.numero][numero_vertice]['caminho'].feromonio, g.graph['alfa']) * math.pow(1.0 / g[pontoAntigo.numero][numero_vertice]['caminho'].distancia, g.graph['beta'])) for numero_vertice in caminhos2]
 		# probabilidade = (math.pow(caminho.feromonio, alfa) * math.pow(1.0 / caminho.distancia, beta))
-		print(caminhos2)
-		print(feromoniosCaminhos)
+		# print(caminhos2)
+		# print(feromoniosCaminhos)
 		# print(probabilidades)
 		somatoria_probabilidades = sum(float(prob) for prob in probabilidades)
 		# print(somatoria_probabilidades)
 
 		ratio_probabilidades = [probabilidade/somatoria_probabilidades for probabilidade in probabilidades]
-		print(ratio_probabilidades)
+		# print(ratio_probabilidades)
 		# somatoria_ratio_probabilidades = sum(float(prob) for prob in ratio_probabilidades)
 		# print(somatoria_ratio_probabilidades)
-		print(ratio_probabilidades.index(max(ratio_probabilidades)))
+		# print(ratio_probabilidades.index(max(ratio_probabilidades)))
 
 		formiga.pontoAtual = g.node[caminhos2[ratio_probabilidades.index(max(ratio_probabilidades))]]['ponto']
 		formiga.pontoAtual.setObjeto(True)
 		g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].aumentaFeromonio()
 		print(formiga.nome, str(pontoAntigo.numero) + " -> " + str(formiga.pontoAtual.numero), str(g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho']), g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].feromonio)
+
+	# TODO: Implementar caso o HQ esteja com n°abelhas vazias - procurar 2°HQ mais proximo, caso também sem abelhas, deixar evento "on-hold"
+	def selecionaHQ(self, evento):
+		distancias = [math.sqrt(pow(hqSelecionado.pontoAtual.x - evento.pontoAtual.x ,2) + pow(hqSelecionado.pontoAtual.y - evento.pontoAtual.y ,2)) for hqSelecionado in self.hqs]
+		print('DISTANCIAS DO EVENTO:', distancias)
+		print(min(distancias))
+		print(distancias.index(min(distancias)))
+		hqSelecionado = self.hqs[distancias.index(min(distancias))]
+		print('MENOR DISTANCIA:', hqSelecionado.nome)
+		return hqSelecionado
+
+	def acionaPelotaoParaAtaque(self, pelotoes, hqSelecionado, evento):
+		# Criamos um pelotao com o nome do evento
+		pelotoes[evento.nome] = hqSelecionado.lancaPelotao(evento)
+		
+		# Caso o pelotao seja mais fraco que o que a colmeia suporte, precisamos reduzir sua força esperando alguns rounds...
+		while(pelotoes[evento.nome] == None):
+			evento.intensidade = evento.intensidade - 1
+			pelotoes[evento.nome] = hqSelecionado.lancaPelotao(evento)
+
+		print('ABELHAS PRONTAS PARA O ATAQUE ->->')
+		for abelha in pelotoes[evento.nome]:
+			print abelha
+			pass
 
 	#Problemas para criar eventos em vertices vazios
 	def iniciaCidade(self):
@@ -291,67 +330,55 @@ class Cidade:
 		pelotoes = {}
 		# MAIN 
 		while(iterador <= self.iteracoes):
-			#Para cada loop de interação, ande com as formigas aleatóriamente
+			#Para cada loop de interação, ande com as formigas
 			for formiga in self.formigas:
-				# formiga.caminhaAleatoriamente(self.caminhos)
+				# Andar aleatóriaamente
+				# self.caminhaAleatoriamente(formiga, self.g)
+				# Andar otimizando os caminhos = maior feromonio & menor distancia
 				self.caminhaFormigaACO(formiga, self.g)
 
+			# A cada 3 iterações, criamos um novo evento na cidade
 			if iterador % 3 == 0:
+				print('NOVO EVENTO NA CIDADE')
 				evento = self.criaEvento()
-				print('Evento Criado - ', evento)
-				g.node[no_aleatorio]['evento'] = evento
-				self.eventos.append(g.node[no_aleatorio]['evento'])
-				hqSelecionado = self.hqs[0]
-				distanciaEvento = math.sqrt(pow(hqSelecionado.pontoAtual.x - evento.pontoAtual.x ,2) + pow(hqSelecionado.pontoAtual.y - evento.pontoAtual.y ,2))
-				for hq in self.hqs:
-					distanciaTemp = math.sqrt(pow(hq.pontoAtual.x - evento.pontoAtual.x ,2) + pow(hq.pontoAtual.y - evento.pontoAtual.y ,2)) 
-					if distanciaTemp < distanciaEvento:
-						distanciaEvento = distanciaTemp
-						hqSelecionado = hq
-				# print(hqSelecionado)
+				print(evento)
+				
+				# Adicionamos o evento na lista de eventos e também como uma propriedade de um Nó
+				self.g.node[evento.pontoAtual.numero]['evento'] = evento
+				self.eventos.append(self.g.node[evento.pontoAtual.numero]['evento'])
+				hqSelecionado = self.selecionaHQ(evento)
+				
+				# TODO Selecionar proximo HQ
 				if(hqSelecionado.abelhasAtual == 0):
 					pass
 				else:
-					# print('1N ABELHAS:', hqSelecionado.abelhasAtual, " HQ NAME >> ", hqSelecionado.nome)
-					print("EVENTO:" , evento.nome, 'INTENSIDADE: ', evento.intensidade, 'LOCAL', evento.pontoAtual.nome)
-					pelotoes[evento.nome] = hqSelecionado.lancaPelotao(evento)
-					while(pelotoes[evento.nome] == None):
-						# print('loop infinito')
-						evento.intensidade = evento.intensidade - 1
-						pelotoes[evento.nome] = hqSelecionado.lancaPelotao(evento)
-					self.eventos.append(evento)
-					# print('2N ABELHAS:', hqSelecionado.abelhasAtual)
-					print('ABELHAS INDO PARA EVENTO')
-					for abelha in pelotoes[evento.nome]:
-						print abelha
-						pass
-					# print pelotoes[evento.nome]
+					print("EVENTO: " , evento.nome, 'INTENSIDADE: ', evento.intensidade, 'LOCAL', evento.pontoAtual.numero)
+					self.acionaPelotaoParaAtaque(pelotoes, hqSelecionado, evento)
+					
 			eventos_mortos = []
 			for evento in self.eventos:
-				# print('RODA EVENTO-----------------------')
-				# print("EVENTO:" , evento.nome)
-				# print('LEN', pelotoes[evento.nome])
 				abelhaLider = pelotoes[evento.nome]
-				# print('preparando abelha lider')
-				abelhaLider[0].caminhaOtimizado(self.caminhos)
-				# print('abelha lider andando')
+				self.caminhaAbelhaOtimizado(abelhaLider[0], self.g)
 
 				#Caso tenha chego no evento
 				if(abelhaLider[0].pontoAtual == evento.pontoAtual):
-					print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!CHEGOU AO EVENTO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+					print('PELOTAO CHEGOU AO EVENTO!')
 					eventos_mortos.append(evento)
 					self.eventos.remove(evento)
-					print('Adicionado abelha ao HQ')
-					for abelha in pelotoes[evento.nome]:
-						abelha.pontoAtual.setObjeto(False)
-						for hq in self.hqs:
-							if hq.id == abelha.id_hq:
-								abelha.pontoAtual = hq.pontoAtual
-								hq.abelhasAtual = hq.abelhasAtual+1
-								hq.abelhas.append(abelha)
+
+					# TODO 
+					self.hqs[abelhaLider.id_hq].retornaPelotao(pelotoes[evento.nome])
+					
 			# print('NUMERO EVENTOS: ', len(self.eventos))
 
 			iterador = iterador + 1
+
+		# Para cada aresta dentro do grafo, decaia o feromonio
+		for aresta in self.g.edges():
+			# print(self.g[aresta[0]][aresta[1]]['caminho'].feromonio)
+			self.g[aresta[0]][aresta[1]]['caminho'].decaiFeromonio()
+			# print(self.g[aresta[0]][aresta[1]]['caminho'].feromonio)
+
 
 
 ########################
@@ -363,7 +390,7 @@ if __name__ == "__main__":
 	alfa = 0.5
 	beta = 1.0
 
-	cidade = Cidade(n_vertices,chance_aresta, alfa, beta, 1)
+	cidade = Cidade(n_vertices,chance_aresta, alfa, beta, 3)
 	cidade.iniciaCidade()
 
 	# print(g.node[no_ale]['formiga'])
