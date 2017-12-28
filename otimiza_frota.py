@@ -104,7 +104,7 @@ class HQ:
 
 	def criaAbelhas(self):
 		for iterador in range(0, self.numero_abelhas):
-			abelhaTemp = Abelha('Tropa', self.nome, self.pontoAtual, self.id)
+			abelhaTemp = Abelha('Tropa', self.id, self.pontoAtual)
 			self.abelhas.append(abelhaTemp)
 
 	def setNome(self):
@@ -182,7 +182,7 @@ class Cidade:
 			print(caminho)
 			print(g[aresta[0]][aresta[1]]['caminho'].feromonio)
 
-		self.grafo = g
+		self.g = g
 		self.iteracoes = iteracoes
 		self.formigas = []
 		self.eventos = []
@@ -194,19 +194,18 @@ class Cidade:
 		plt.show()
 
 	def getPontoAleatorio(self):
-		return g.node[random.randint(1, self.n_vertices)]['ponto']
+		return self.g.node[random.randint(1, self.n_vertices-1)]['ponto']
 
 	def criaFormigas(self):
 		# O número de formigas sempre será 1/3 do número de vertices
-		self.qtdFormigas = int(round((float) (self.numero_pontos * 1)/3))
-		# print('QTD DE FORMIGAS: ', self.qtdFormigas)
-		for formiga in range(self.qtdFormigas):
-			# Crie uma formiga do tipo patrulha e adicione em um ponto onde não exista nenhuma outra classe
-			no_aleatorio = self.getPontoAleatorio()
-			formiga1 = Formiga('PATRULHA', no_aleatorio)
-			g.node[no_aleatorio]['formiga'] = formiga1
-			print(formiga1.nome, formiga1.pontoAtual.numero)
-			self.formigas.append(g.node[no_aleatorio]['formiga'])
+		self.qtdFormigas = int(round((float) (self.n_vertices * 1)/3))
+		print('QTD DE FORMIGAS: ', self.qtdFormigas)
+		formigas_temp = [Formiga('PATRULHA', self.getPontoAleatorio()) for i in range(self.qtdFormigas)]
+
+		for formiga in formigas_temp:
+			print(formiga.nome, formiga.pontoAtual.numero)
+			self.g.node[formiga.pontoAtual.numero]['formiga'] = formiga
+			self.formigas.append(self.g.node[formiga.pontoAtual.numero]['formiga'])
 
 	def criaEvento(self):
 		no_aleatorio = self.getPontoAleatorio()
@@ -214,7 +213,7 @@ class Cidade:
 
 	def criaHQs(self):
 		# Número de HQ é sempre 1/5 do número de vertices do grafo
-		self.qtdHQs = int(round((float) (self.numero_pontos * 1)/5))
+		self.qtdHQs = int(round((float) (self.n_vertices * 1)/5))
 		print('QTD DE HQs: ', self.qtdHQs)
 		print('QTD DE Abelhas: ', self.mediaAbelhas)
 		# Adiciona todos os HQ criados dentro da cidade
@@ -224,7 +223,7 @@ class Cidade:
 			self.hqs.append(hqTemp)
 			print('NOME ', hqTemp.nome, " | LOCAL: ", hqTemp.pontoAtual.nome)
 
-	def caminhaFormigaAleatoriamente(formiga, g):
+	def caminhaFormigaAleatoriamente(self, formiga, g):
 			# print(formiga.pontoAtual.numero)
 			pontoAntigo = formiga.pontoAtual
 			# print(g.neighbors(pontoAntigo.numero))
@@ -240,7 +239,7 @@ class Cidade:
 			g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].aumentaFeromonio()
 			print(str(pontoAntigo.numero) + " -> " + str(formiga.pontoAtual.numero), str(g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho']), g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].feromonio)
 
-	def caminhaAbelhaOtimizado(abelha, g):
+	def caminhaAbelhaOtimizado(self, abelha, g):
 		# print(formiga.pontoAtual.numero)
 		pontoAntigo = abelha.pontoAtual
 		print(abelha.pontoAtual.numero)
@@ -255,7 +254,7 @@ class Cidade:
 		abelha.pontoAtual.setObjeto(True)
 		print(abelha.pontoAtual.numero)
 
-	def caminhaFormigaACO(formiga, g):
+	def caminhaFormigaACO(self, formiga, g):
 		print(formiga.nome)
 		formiga.pontoAtual.setObjeto(False)
 		pontoAntigo = formiga.pontoAtual
@@ -295,7 +294,7 @@ class Cidade:
 			#Para cada loop de interação, ande com as formigas aleatóriamente
 			for formiga in self.formigas:
 				# formiga.caminhaAleatoriamente(self.caminhos)
-				self.caminhaFormigaACO(formiga, self.grafo)
+				self.caminhaFormigaACO(formiga, self.g)
 
 			if iterador % 3 == 0:
 				evento = self.criaEvento()
@@ -365,6 +364,7 @@ if __name__ == "__main__":
 	beta = 1.0
 
 	cidade = Cidade(n_vertices,chance_aresta, alfa, beta, 1)
+	cidade.iniciaCidade()
 
 	# print(g.node[no_ale]['formiga'])
 
