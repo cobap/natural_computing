@@ -316,9 +316,9 @@ class Cidade:
 		pontoAntigo = formiga.pontoAtual
 		# print(formiga.pontoAtual.numero)
 		caminhos2 = g.neighbors(pontoAntigo.numero)
-		
+		# print('PRE BLACK_LIST:', caminhos2)
 		caminhos2 = [caminho for caminho in caminhos2 if not formiga.isOnBlackList(caminho)]
-
+		# print('POS BLACK_LIST:', caminhos2)
 		# Caso não tenha conseguido chegar até agora, limpamos a back_list e começamos novamente
 		if len(caminhos2) == 0:
 			formiga.cleanBlackList()
@@ -344,6 +344,7 @@ class Cidade:
 		formiga.pontoAtual.setObjeto(True)
 		g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].aumentaFeromonio()
 		# print(formiga.nome, str(pontoAntigo.numero), str(formiga.pontoAtual.numero), str(g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho']), g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].feromonio, 'PROBABILIDADE', max(ratio_probabilidades))
+		formiga.addVerticeBlackList(pontoAntigo.numero)
 		print(formiga.nome, str(pontoAntigo.numero), str(formiga.pontoAtual.numero), g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].feromonio, max(ratio_probabilidades))
 
 	def selecionaHQ(self, evento):
