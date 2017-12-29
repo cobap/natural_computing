@@ -381,19 +381,19 @@ class Cidade:
 		self.criaHQs()
 		pelotoes = {}
 		# MAIN 
+
+		# Para cada iteração - rode o ACO e otimize os caminhos
+		# -- IDEIA -- rodar o ACO antes dos eventos e criar um subgrafo que mostre os melhores caminhos, então implementar para que as abelhas só visitem esse subgrafo sempre levando em conta a distancia do evento e o feromonio
+		# Para gerar esse subgrafo - podemos utilizar a lista de arestas que tiveram os n° maiores feromonios desde que não liguem o mesmo vertice. Assim - teremos um grafo que teve o maior feromonio entre todos os vertices
+
 		while(iterador <= self.iteracoes):
-			#Para cada loop de interação, ande com as formigas
 			for formiga in self.formigas:
-				# Andar aleatóriaamente
-				# self.caminhaAleatoriamente(formiga, self.g)
-				# Andar otimizando os caminhos = maior feromonio & menor distancia
 				self.caminhaFormigaACO(formiga, self.g)
 
 			# A cada 3 iterações, criamos um novo evento na cidade
 			if iterador % 3 == 0:
 				print('NOVO EVENTO NA CIDADE')
 				evento = self.criaEvento()
-				print(evento)
 				
 				# Adicionamos o evento na lista de eventos e também como uma propriedade de um Nó
 				self.g.node[evento.pontoAtual.numero]['evento'] = evento
@@ -450,7 +450,7 @@ if __name__ == "__main__":
 	alfa = 0.1
 	beta = 2.5
 
-	cidade = Cidade(n_vertices,chance_aresta, alfa, beta, 5, 20)
+	cidade = Cidade(n_vertices,chance_aresta, alfa, beta, 100, 20)
 	cidade.iniciaCidade()
 
 	# print(g.node[no_ale]['formiga'])
