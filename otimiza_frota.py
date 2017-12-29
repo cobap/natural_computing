@@ -38,7 +38,8 @@ class Caminho:
 		self.pontoA = pontoA
 		self.pontoB = pontoB
 		self.distancia = 0
-		self.feromonio = 1.0+ (random.randint(5,9)/10000.0) + (random.randint(1,9)/100000.0)
+		# self.feromonio = 1.0+ (random.randint(5,9)/10000.0) + (random.randint(1,9)/100000.0)
+		self.feromonio = 0.00001
 		self.feromonioInicial = self.feromonio
 		self.setDistancia(self.pontoA, self.pontoB)
 
@@ -215,6 +216,7 @@ class Cidade:
 		self.iteracoes = iteracoes
 		self.formigas = []
 		self.eventos = []
+		self.eventos_hold = []
 		self.hqs = []
 		self.mediaAbelhas = random.randint(2,4)
 		self.qtdFormigasIndex = qtdFormigas
