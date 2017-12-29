@@ -138,11 +138,9 @@ class HQ:
 		print('ABELHAS RETORNANDO AO HQ')
 		for abelha in pelotao:
 			abelha.pontoAtual.setObjeto(False)
-			for hq in self.hqs:
-				if hq.id == abelha.id_hq:
-					abelha.pontoAtual = hq.pontoAtual
-					hq.abelhasAtual = hq.abelhasAtual+1
-					hq.abelhas.append(abelha)
+		abelha.pontoAtual = self.pontoAtual
+		self.abelhasAtual = self.abelhasAtual+1
+		self.abelhas.append(abelha)
 
 	def __str__(self):
 		return self.nome
@@ -171,7 +169,7 @@ class Evento:
 		return self.nome + resultado
 
 class Cidade:
-	def __init__(self, n_vertices, chance_aresta, alfa, beta, iteracoes):
+	def __init__(self, n_vertices, chance_aresta, alfa, beta, iteracoes, qtdFormigas):
 		# Cria gráfico aleatório com n_vertices e % de existir uma aresta entre dois vertices
 		self.n_vertices = n_vertices
 		g = nx.fast_gnp_random_graph(n_vertices, chance_aresta)
@@ -208,7 +206,7 @@ class Cidade:
 		self.eventos = []
 		self.hqs = []
 		self.mediaAbelhas = random.randint(2,4)
-		self.qtdFormigasIndex = 3
+		self.qtdFormigasIndex = qtdFormigas
 
 		nx.draw(g, with_labels=True)
 		plt.savefig("grafico.png")
@@ -219,7 +217,8 @@ class Cidade:
 
 	def criaFormigas(self):
 		# O número de formigas sempre será 1/3 do número de vertices
-		self.qtdFormigas = int(round((float) (self.n_vertices * 1)/self.qtdFormigasIndex))
+		# self.qtdFormigas = int(round((float) (self.n_vertices * 1)/self.qtdFormigasIndex))
+		self.qtdFormigas = self.qtdFormigasIndex
 		print('QTD DE FORMIGAS: ', self.qtdFormigas)
 		formigas_temp = [Formiga('PATRULHA', self.getPontoAleatorio()) for i in range(self.qtdFormigas)]
 
@@ -302,7 +301,8 @@ class Cidade:
 		formiga.pontoAtual = g.node[caminhos2[ratio_probabilidades.index(max(ratio_probabilidades))]]['ponto']
 		formiga.pontoAtual.setObjeto(True)
 		g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].aumentaFeromonio()
-		print(formiga.nome, str(pontoAntigo.numero) + " -> " + str(formiga.pontoAtual.numero), str(g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho']), g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].feromonio)
+		# print(formiga.nome, str(pontoAntigo.numero), str(formiga.pontoAtual.numero), str(g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho']), g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].feromonio, 'PROBABILIDADE', max(ratio_probabilidades))
+		print(formiga.nome, str(pontoAntigo.numero), str(formiga.pontoAtual.numero), g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].feromonio, max(ratio_probabilidades))
 
 	# TODO: Implementar caso o HQ esteja com n°abelhas vazias - procurar 2°HQ mais proximo, caso também sem abelhas, deixar evento "on-hold"
 	def selecionaHQ(self, evento):
@@ -374,8 +374,10 @@ class Cidade:
 					eventos_mortos.append(evento)
 					self.eventos.remove(evento)
 
-					# TODO 
-					self.hqs[abelhaLider.id_hq].retornaPelotao(pelotoes[evento.nome])
+					# TODO
+					print('ABELHA LIDER: ', abelhaLider[0].id_hq) 
+					print('HQ DA ABELHA: ', self.hqs[abelhaLider[0].id_hq])
+					self.hqs[abelhaLider[0].id_hq].retornaPelotao(pelotoes[evento.nome])
 					
 			# print('NUMERO EVENTOS: ', len(self.eventos))
 
@@ -398,7 +400,7 @@ if __name__ == "__main__":
 	alfa = 0.1
 	beta = 2.5
 
-	cidade = Cidade(n_vertices,chance_aresta, alfa, beta, 5)
+	cidade = Cidade(n_vertices,chance_aresta, alfa, beta, 5, 20)
 	cidade.iniciaCidade()
 
 	# print(g.node[no_ale]['formiga'])
