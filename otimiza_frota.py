@@ -89,12 +89,22 @@ class Abelha:
 		self.setNome()
 		self.pontoAtual = pontoAtual
 		self.pontoAtual.setObjeto(True)
+		self.black_list = []
 
 	def setNome(self):
 		letras = ['Corine', 'Nina', 'Laraine', 'Gaspard', 'Bartolemo', 'Rebe', 'Gasper', 'Pauli', 'Sheila-kathryn', 'Gus', 'Christabella', 'Thalia', 'Tyrone', 'Dennison', 'Udale', 'Annaliese', 'Rufus', 'Zebedee', 'Philbert', 'Collin', 'Colver', 'Marcile', 'Cherie', 'Janene', 'Ainslie', 'Bernardina', 'Ursula', 'Alene', 'Horatio', 'Edita', 'Sidnee', 'Gianna', 'Ashton', 'Cymbre', 'Adda', 'Charlena', 'Karly', 'York', 'Shanna', 'Tracie', 'Brook', 'Hilario', 'Darcy', 'Lisette', 'Jakie', 'Teodoro', 'Rochell', 'Jenn', 'Annadiana', 'Clint', 'Wilbur', 'Cariotta', 'Kinnie', 'Diarmid', 'Jocko', 'Mortie', 'Jarib', 'Westleigh', 'Mair', 'Trumaine', 'Emlyn', 'Abagael', 'Em', 'Dolores', 'Erina', 'Lou', 'Golda', 'Herold', 'Bryn', 'Christiane', 'Oralia', 'Bella', 'Kathi', 'Kerry', 'Lindsay', 'Claudetta', 'Manny', 'Cosette', 'Gordy', 'Jordan', 'Dean', 'Elaine', 'Andrey', 'Solly', 'Renie', 'Pepito', 'Godfree', 'Sabina', 'Liana', 'Stevana', 'Onfre', 'Hubert', 'Leslie', 'Chev', 'Caryn', 'Rollins', 'Adriane', 'Bealle', 'Catharine', 'Ulrich', 'Ikey']
 		letra = random.randint(0, len(letras)-1)
 		numero = random.randint(1,100)
 		self.nome = 'BEE-' + str(letras[letra]) + str(letra)
+
+	def addVerticeBlackList(self, n_vertice):
+		self.black_list.append(n_vertice)
+
+	def cleanBlackList(self):
+		del self.black_list[:]
+
+	def isOnBlackList(self, n_vertice):
+		return n_vertice in self.black_list
 
 	def __str__(self):
 		return self.nome
@@ -138,6 +148,7 @@ class HQ:
 		print('ABELHAS RETORNANDO AO HQ')
 		for abelha in pelotao:
 			abelha.pontoAtual.setObjeto(False)
+			abelha.cleanBlackList()
 		abelha.pontoAtual = self.pontoAtual
 		self.abelhasAtual = self.abelhasAtual+1
 		self.abelhas.append(abelha)
@@ -267,6 +278,16 @@ class Cidade:
 		abelha.pontoAtual.setObjeto(False)
 		# print(g.neighbors(pontoAntigo.numero))
 		caminhos2 = g.neighbors(pontoAntigo.numero)
+
+		# Filtrando para eliminar vizinhos ja visitados
+		caminhos2 = [caminho for caminho in caminhos2 if not abelha.isOnBlackList(caminho)]
+
+		# Caso não tenha conseguido chegar até agora, limpamos a back_list e começamos novamente
+		if len(caminhos2) == 0:
+			abelha.cleanBlackList()
+			caminhos2 = g.neighbors(pontoAntigo.numero)
+
+		# print('CAMINHOS POS BLACK_LIST', caminhos2)
 		# print(g.neighbors(pontoAntigo.numero))
 		# g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho']
 		feromoniosCaminhos = [g[pontoAntigo.numero][numero_vertice]['caminho'].feromonio for numero_vertice in caminhos2]
@@ -274,6 +295,7 @@ class Cidade:
 		abelha.pontoAtual = g.node[caminhos2[feromoniosCaminhos.index(max(feromoniosCaminhos))]]['ponto']
 		abelha.pontoAtual.setObjeto(True)
 		# print(abelha.pontoAtual.numero)
+		abelha.addVerticeBlackList(pontoAntigo.numero)
 		print(abelha.nome, str(pontoAntigo.numero) + " -> " + str(abelha.pontoAtual.numero), str(g[pontoAntigo.numero][abelha.pontoAtual.numero]['caminho']), g[pontoAntigo.numero][abelha.pontoAtual.numero]['caminho'].feromonio)
 
 	def caminhaFormigaACO(self, formiga, g):
@@ -304,12 +326,14 @@ class Cidade:
 		# print(formiga.nome, str(pontoAntigo.numero), str(formiga.pontoAtual.numero), str(g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho']), g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].feromonio, 'PROBABILIDADE', max(ratio_probabilidades))
 		print(formiga.nome, str(pontoAntigo.numero), str(formiga.pontoAtual.numero), g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].feromonio, max(ratio_probabilidades))
 
-	# TODO: Implementar caso o HQ esteja com n°abelhas vazias - procurar 2°HQ mais proximo, caso também sem abelhas, deixar evento "on-hold"
 	def selecionaHQ(self, evento):
-		distancias = [math.sqrt(pow(hqSelecionado.pontoAtual.x - evento.pontoAtual.x ,2) + pow(hqSelecionado.pontoAtual.y - evento.pontoAtual.y ,2)) for hqSelecionado in self.hqs]
-		print('DISTANCIAS DO EVENTO:', distancias)
-		print(min(distancias))
-		print(distancias.index(min(distancias)))
+		hqDisponiveis = [hq for hq in  self.hqs if hq.abelhasAtual is not 0]
+		distancias = [math.sqrt(pow(hqSelecionado.pontoAtual.x - evento.pontoAtual.x ,2) + pow(hqSelecionado.pontoAtual.y - evento.pontoAtual.y ,2)) for hqSelecionado in hqDisponiveis]
+		
+		if len(distancias) == 0:
+			self.eventos_hold.append(evento)
+			return None
+		
 		hqSelecionado = self.hqs[distancias.index(min(distancias))]
 		print('MENOR DISTANCIA:', hqSelecionado.nome)
 		return hqSelecionado
@@ -355,11 +379,11 @@ class Cidade:
 				self.eventos.append(self.g.node[evento.pontoAtual.numero]['evento'])
 				hqSelecionado = self.selecionaHQ(evento)
 				
-				# TODO Selecionar proximo HQ
-				if(hqSelecionado.abelhasAtual == 0):
-					pass
+				if(hqSelecionado is None):
+					self.eventos.remove(evento)
+					print("EVENTO: " , evento.nome, 'INTENSIDADE: ', evento.intensidade, 'LOCAL', evento.pontoAtual.numero, "ITER", iterador, "STATUS", 'ON-HOLD')
 				else:
-					print("EVENTO: " , evento.nome, 'INTENSIDADE: ', evento.intensidade, 'LOCAL', evento.pontoAtual.numero, "ITER", iterador)
+					print("EVENTO: " , evento.nome, 'INTENSIDADE: ', evento.intensidade, 'LOCAL', evento.pontoAtual.numero, "ITER", iterador, 'STATUS', 'ATIVO')
 					self.acionaPelotaoParaAtaque(pelotoes, hqSelecionado, evento)
 					
 			eventos_mortos = []
@@ -378,6 +402,11 @@ class Cidade:
 					print('ABELHA LIDER: ', abelhaLider[0].id_hq) 
 					print('HQ DA ABELHA: ', self.hqs[abelhaLider[0].id_hq])
 					self.hqs[abelhaLider[0].id_hq].retornaPelotao(pelotoes[evento.nome])
+
+					if len(self.eventos_hold) > 0:
+						evento_on_hold = self.eventos_hold.pop()
+						print("EVENTO: " , evento_on_hold.nome, 'INTENSIDADE: ', evento_on_hold.intensidade, 'LOCAL', evento_on_hold.pontoAtual.numero, "ITER", iterador, 'STATUS', 'ATIVO')
+						self.acionaPelotaoParaAtaque(pelotoes, self.hqs[abelhaLider[0].id_hq], evento_on_hold)
 					
 			# print('NUMERO EVENTOS: ', len(self.eventos))
 
