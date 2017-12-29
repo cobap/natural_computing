@@ -76,16 +76,6 @@ class Formiga:
 		self.pontoAtual.setObjeto(True)
 		# Cria um nome para a formiga
 		self.setNome()
-		self.black_list = []
-
-	def addVerticeBlackList(self, n_vertice):
-		self.black_list.append(n_vertice)
-
-	def cleanBlackList(self):
-		del self.black_list[:]
-
-	def isOnBlackList(self, n_vertice):
-		return n_vertice in self.black_list
 
 	def setNome(self):
 		letras = ['Corine', 'Nina', 'Laraine', 'Gaspard', 'Bartolemo', 'Rebe', 'Gasper', 'Pauli', 'Sheila-kathryn', 'Gus', 'Christabella', 'Thalia', 'Tyrone', 'Dennison', 'Udale', 'Annaliese', 'Rufus', 'Zebedee', 'Philbert', 'Collin', 'Colver', 'Marcile', 'Cherie', 'Janene', 'Ainslie', 'Bernardina', 'Ursula', 'Alene', 'Horatio', 'Edita', 'Sidnee', 'Gianna', 'Ashton', 'Cymbre', 'Adda', 'Charlena', 'Karly', 'York', 'Shanna', 'Tracie', 'Brook', 'Hilario', 'Darcy', 'Lisette', 'Jakie', 'Teodoro', 'Rochell', 'Jenn', 'Annadiana', 'Clint', 'Wilbur', 'Cariotta', 'Kinnie', 'Diarmid', 'Jocko', 'Mortie', 'Jarib', 'Westleigh', 'Mair', 'Trumaine', 'Emlyn', 'Abagael', 'Em', 'Dolores', 'Erina', 'Lou', 'Golda', 'Herold', 'Bryn', 'Christiane', 'Oralia', 'Bella', 'Kathi', 'Kerry', 'Lindsay', 'Claudetta', 'Manny', 'Cosette', 'Gordy', 'Jordan', 'Dean', 'Elaine', 'Andrey', 'Solly', 'Renie', 'Pepito', 'Godfree', 'Sabina', 'Liana', 'Stevana', 'Onfre', 'Hubert', 'Leslie', 'Chev', 'Caryn', 'Rollins', 'Adriane', 'Bealle', 'Catharine', 'Ulrich', 'Ikey']
@@ -316,14 +306,6 @@ class Cidade:
 		pontoAntigo = formiga.pontoAtual
 		# print(formiga.pontoAtual.numero)
 		caminhos2 = g.neighbors(pontoAntigo.numero)
-		
-		caminhos2 = [caminho for caminho in caminhos2 if not formiga.isOnBlackList(caminho)]
-
-		# Caso não tenha conseguido chegar até agora, limpamos a back_list e começamos novamente
-		if len(caminhos2) == 0:
-			formiga.cleanBlackList()
-			caminhos2 = g.neighbors(pontoAntigo.numero)
-
 		# Calcula a probabilidade baseado no feromonio do caminho e a sua distancia
 		feromoniosCaminhos = [g[pontoAntigo.numero][numero_vertice]['caminho'].feromonio for numero_vertice in caminhos2]
 		probabilidades = [(math.pow(g[pontoAntigo.numero][numero_vertice]['caminho'].feromonio, g.graph['alfa']) * math.pow(1.0 / g[pontoAntigo.numero][numero_vertice]['caminho'].distancia, g.graph['beta'])) for numero_vertice in caminhos2]
