@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import math, random, copy
+import math, random, copy, hashlib
 import networkx as nx
 import matplotlib.pyplot as plt
 from random import choice
@@ -121,18 +121,15 @@ class Abelha:
 		return self.nome
 
 class HQ:
-	def __init__(self, numero_abelhas, pontoAtual):
+	def __init__(self, numero_abelhas, pontoAtual, id):
 		self.numero_abelhas = numero_abelhas
 		self.setNome()
 		self.pontoAtual = pontoAtual
 		self.pontoAtual.setObjeto(True)
 		self.abelhas = []
-		self.id = 0
+		self.id = id
 		self.criaAbelhas()
 		self.abelhasAtual = numero_abelhas
-
-	def setID(self, new_id):
-		self.id = new_id
 
 	def criaAbelhas(self):
 		for iterador in range(0, self.numero_abelhas):
@@ -157,15 +154,14 @@ class HQ:
 
 	def retornaPelotao(self, pelotao):
 		print('ABELHAS RETORNANDO AO HQ')
+		print(pelotao)
 		for abelha in pelotao:
+			print(abelha, 'retornando ao HQ')
 			abelha.pontoAtual.setObjeto(False)
 			abelha.cleanBlackList()
-		abelha.pontoAtual = self.pontoAtual
-		self.abelhasAtual = self.abelhasAtual+1
-		self.abelhas.append(abelha)
-
-	def __str__(self):
-		return self.nome
+			abelha.pontoAtual = self.pontoAtual
+			self.abelhasAtual = self.abelhasAtual+1
+			self.abelhas.append(abelha)
 
 class Evento:
 	def __init__(self, pontoAtual):
@@ -177,7 +173,7 @@ class Evento:
 	def setNome(self):
 		letras = ['Assalto', 'Briga', 'Corrida de Rua', 'Depredação', 'Extermínio', 'Fuga', 'Golpe de Estado', 'Hospital em Chamas', 'Individuo Suspeito', 'Joalheiria Roubada', 'Ladrão', 'Mulher em Trabalho de Parto', 'Navio Afundando', 'Operação Policial', 'PM na Área', 'Quadrilha', 'Resgate', 'Soldado Ferido', 'Tiroteio', 'Vítima de Acidente']
 		letra = random.randint(0, len(letras)-1)
-		self.nome =  str(letras[letra]) +str(letra)
+		self.nome =  str(letras[letra]) +str(letra) + str(random.getrandbits(128))
 
 	def setIntensidadeRange(self):
 		self.intensidade = random.randint(1,3)
@@ -262,9 +258,9 @@ class Cidade:
 		# Adiciona todos os HQ criados dentro da cidade
 		for hq in range(self.qtdHQs):
 			no_aleatorio = self.getPontoAleatorio()
-			hqTemp = HQ(self.mediaAbelhas, no_aleatorio)
+			hqTemp = HQ(self.mediaAbelhas, no_aleatorio, hq)
 			self.hqs.append(hqTemp)
-			hqTemp.setID(self.hqs.index(hqTemp))
+			# hqTemp.setID(self.hqs.index(hqTemp))
 			print('NOME ', hqTemp.nome, " | LOCAL: ", hqTemp.pontoAtual.numero)
 
 	def caminhaFormigaAleatoriamente(self, formiga, g):
@@ -308,7 +304,7 @@ class Cidade:
 		abelha.pontoAtual.setObjeto(True)
 		# print(abelha.pontoAtual.numero)
 		abelha.addVerticeBlackList(pontoAntigo.numero)
-		print(abelha.nome, str(pontoAntigo.numero) + " -> " + str(abelha.pontoAtual.numero), str(g[pontoAntigo.numero][abelha.pontoAtual.numero]['caminho']), g[pontoAntigo.numero][abelha.pontoAtual.numero]['caminho'].feromonio)
+		print(abelha.nome, abelha.id_hq ,str(pontoAntigo.numero) + " -> " + str(abelha.pontoAtual.numero), str(g[pontoAntigo.numero][abelha.pontoAtual.numero]['caminho']), g[pontoAntigo.numero][abelha.pontoAtual.numero]['caminho'].feromonio)
 
 	def caminhaFormigaACO(self, formiga, g):
 		# print(formiga.nome)
@@ -349,13 +345,17 @@ class Cidade:
 
 	def selecionaHQ(self, evento):
 		hqDisponiveis = [hq for hq in  self.hqs if hq.abelhasAtual is not 0]
+		print('HQ DISPONIVEIS: ')
+		for hq in hqDisponiveis:
+			print(hq.nome, hq.id, hq.abelhasAtual)
 		distancias = [math.sqrt(pow(hqSelecionado.pontoAtual.x - evento.pontoAtual.x ,2) + pow(hqSelecionado.pontoAtual.y - evento.pontoAtual.y ,2)) for hqSelecionado in hqDisponiveis]
 		
 		if len(distancias) == 0:
 			self.eventos_hold.append(evento)
 			return None
 		
-		hqSelecionado = self.hqs[distancias.index(min(distancias))]
+		# hqSelecionado = self.hqs[distancias.index(min(distancias))]
+		hqSelecionado = hqDisponiveis[distancias.index(min(distancias))]
 		print('MENOR DISTANCIA:', hqSelecionado.nome)
 		return hqSelecionado
 
@@ -372,7 +372,6 @@ class Cidade:
 		for abelha in pelotoes[evento.nome]:
 			print abelha
 
-	#Problemas para criar eventos em vertices vazios
 	def iniciaCidade(self):
 		# Inicia cidade - criando formigas, HQs, eventos, etc...
 		# random.seed(42)
@@ -392,7 +391,7 @@ class Cidade:
 
 			# A cada 3 iterações, criamos um novo evento na cidade
 			if iterador % 3 == 0:
-				print('NOVO EVENTO NA CIDADE')
+				# print('NOVO EVENTO NA CIDADE')
 				evento = self.criaEvento()
 				
 				# Adicionamos o evento na lista de eventos e também como uma propriedade de um Nó
@@ -402,9 +401,10 @@ class Cidade:
 				
 				if(hqSelecionado is None):
 					self.eventos.remove(evento)
-					print("EVENTO: " , evento.nome, 'INTENSIDADE: ', evento.intensidade, 'LOCAL', evento.pontoAtual.numero, "ITER", iterador, "STATUS", 'ON-HOLD')
+					# print("EVENTO: " , evento.nome, 'INTENSIDADE: ', evento.intensidade, 'LOCAL', evento.pontoAtual.numero, "ITER", iterador, "STATUS", 'ON-HOLD')
+					print("EVENTO:" , evento.nome, evento.intensidade, evento.pontoAtual.numero, iterador, 'ON-HOLD')
 				else:
-					print("EVENTO: " , evento.nome, 'INTENSIDADE: ', evento.intensidade, 'LOCAL', evento.pontoAtual.numero, "ITER", iterador, 'STATUS', 'ATIVO')
+					print("EVENTO:" , evento.nome, evento.intensidade, evento.pontoAtual.numero, iterador, 'ATIVO')
 					self.acionaPelotaoParaAtaque(pelotoes, hqSelecionado, evento)
 					
 			eventos_mortos = []
@@ -414,19 +414,19 @@ class Cidade:
 
 				#Caso tenha chego no evento
 				if(abelhaLider[0].pontoAtual == evento.pontoAtual):
-					print('PELOTAO CHEGOU AO EVENTO!')
-					print("EVENTO: " , evento.nome, 'INTENSIDADE: ', evento.intensidade, 'LOCAL', evento.pontoAtual.numero, "ITER", iterador)
+					# print('PELOTAO CHEGOU AO EVENTO!')
+					print("EVENTO:" , evento.nome, evento.intensidade, evento.pontoAtual.numero, iterador, 'COMPLETO')
 					eventos_mortos.append(evento)
 					self.eventos.remove(evento)
 
 					# TODO
-					print('ABELHA LIDER: ', abelhaLider[0].id_hq) 
-					print('HQ DA ABELHA: ', self.hqs[abelhaLider[0].id_hq])
+					# print('ABELHA LIDER: ', abelhaLider[0].id_hq) 
+					# print('HQ DA ABELHA: ', self.hqs[abelhaLider[0].id_hq].nome)
 					self.hqs[abelhaLider[0].id_hq].retornaPelotao(pelotoes[evento.nome])
 
 					if len(self.eventos_hold) > 0:
 						evento_on_hold = self.eventos_hold.pop()
-						print("EVENTO: " , evento_on_hold.nome, 'INTENSIDADE: ', evento_on_hold.intensidade, 'LOCAL', evento_on_hold.pontoAtual.numero, "ITER", iterador, 'STATUS', 'ATIVO')
+						print("EVENTO:" , evento_on_hold.nome, evento_on_hold.intensidade, evento_on_hold.pontoAtual.numero, iterador, 'RE-ATIVO')
 						self.acionaPelotaoParaAtaque(pelotoes, self.hqs[abelhaLider[0].id_hq], evento_on_hold)
 					
 			# print('NUMERO EVENTOS: ', len(self.eventos))
@@ -452,20 +452,3 @@ if __name__ == "__main__":
 
 	cidade = Cidade(n_vertices,chance_aresta, alfa, beta, 100, 20)
 	cidade.iniciaCidade()
-
-	# print(g.node[no_ale]['formiga'])
-
-	# Mostra todas as Formigas no mapa
-	# for no in g.nodes():
-		# print(g.node[no]['formiga'])
-
-	# Mostra todo os vizinhos de um nó aleatório
-	# print(no_ale, g.neighbors(no_ale))
-
-	# no_ale = random.randint(6,10)
-	# print('------------ABELHAS-------------')
-	# abelha1 = Abelha('BATEDORA',1,g.node[no_ale]['ponto'])
-	# caminhaOtimizadoAbelha(abelha1, g)
-
-	# pos=nx.spring_layout(g)
-	# nx.draw_networkx_labels(g, pos, font_size=20,font_family='sans-serif')
