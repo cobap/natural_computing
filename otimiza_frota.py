@@ -153,10 +153,10 @@ class HQ:
 			return pelotao
 
 	def retornaPelotao(self, pelotao):
-		print('ABELHAS RETORNANDO AO HQ')
-		print(pelotao)
+		# print('ABELHAS RETORNANDO AO HQ')
+		# print(pelotao)
 		for abelha in pelotao:
-			print(abelha, 'retornando ao HQ')
+			# print(abelha, 'retornando ao HQ')
 			abelha.pontoAtual.setObjeto(False)
 			abelha.cleanBlackList()
 			abelha.pontoAtual = self.pontoAtual
@@ -368,9 +368,9 @@ class Cidade:
 			evento.intensidade = evento.intensidade - 1
 			pelotoes[evento.nome] = hqSelecionado.lancaPelotao(evento)
 
-		print('ABELHAS PRONTAS PARA O ATAQUE ->->')
-		for abelha in pelotoes[evento.nome]:
-			print abelha
+		# print('ABELHAS PRONTAS PARA O ATAQUE ->->')
+		# for abelha in pelotoes[evento.nome]:
+		# 	print abelha
 
 	def iniciaCidade(self):
 		# Inicia cidade - criando formigas, HQs, eventos, etc...
@@ -391,21 +391,24 @@ class Cidade:
 
 			# A cada 3 iterações, criamos um novo evento na cidade
 			if iterador % 3 == 0:
-				# print('NOVO EVENTO NA CIDADE')
-				evento = self.criaEvento()
-				
-				# Adicionamos o evento na lista de eventos e também como uma propriedade de um Nó
-				self.g.node[evento.pontoAtual.numero]['evento'] = evento
-				self.eventos.append(self.g.node[evento.pontoAtual.numero]['evento'])
-				hqSelecionado = self.selecionaHQ(evento)
-				
-				if(hqSelecionado is None):
-					self.eventos.remove(evento)
-					# print("EVENTO: " , evento.nome, 'INTENSIDADE: ', evento.intensidade, 'LOCAL', evento.pontoAtual.numero, "ITER", iterador, "STATUS", 'ON-HOLD')
-					print("EVENTO:" , evento.nome, evento.intensidade, evento.pontoAtual.numero, iterador, 'ON-HOLD')
-				else:
-					print("EVENTO:" , evento.nome, evento.intensidade, evento.pontoAtual.numero, iterador, 'ATIVO')
-					self.acionaPelotaoParaAtaque(pelotoes, hqSelecionado, evento)
+				if len(self.eventos_hold) > len(self.hqs):
+					pass
+				else: 
+					# print('NOVO EVENTO NA CIDADE')
+					evento = self.criaEvento()
+					
+					# Adicionamos o evento na lista de eventos e também como uma propriedade de um Nó
+					self.g.node[evento.pontoAtual.numero]['evento'] = evento
+					self.eventos.append(self.g.node[evento.pontoAtual.numero]['evento'])
+					hqSelecionado = self.selecionaHQ(evento)
+					
+					if(hqSelecionado is None):
+						self.eventos.remove(evento)
+						# print("EVENTO: " , evento.nome, 'INTENSIDADE: ', evento.intensidade, 'LOCAL', evento.pontoAtual.numero, "ITER", iterador, "STATUS", 'ON-HOLD')
+						print("EVENTO:" , evento.nome, evento.intensidade, evento.pontoAtual.numero, iterador, 'ON-HOLD')
+					else:
+						print("EVENTO:" , evento.nome, evento.intensidade, evento.pontoAtual.numero, iterador, 'ATIVO')
+						self.acionaPelotaoParaAtaque(pelotoes, hqSelecionado, evento)
 					
 			eventos_mortos = []
 			for evento in self.eventos:
