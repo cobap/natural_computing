@@ -331,12 +331,21 @@ class Cidade:
 		# print(somatoria_probabilidades)
 
 		ratio_probabilidades = [probabilidade/somatoria_probabilidades for probabilidade in probabilidades]
-		# print(ratio_probabilidades)
+		ratio_probabilidades.sort(reverse=True)
+		chance_escolhida = None
+		print(ratio_probabilidades)
+		while chance_escolhida is None:
+			for chance in ratio_probabilidades:
+				if random.random() < chance:
+					chance_escolhida = chance
+		print(chance_escolhida)
+
+
 		# somatoria_ratio_probabilidades = sum(float(prob) for prob in ratio_probabilidades)
 		# print(somatoria_ratio_probabilidades)
 		# print(ratio_probabilidades.index(max(ratio_probabilidades)))
-
-		formiga.pontoAtual = g.node[caminhos2[ratio_probabilidades.index(max(ratio_probabilidades))]]['ponto']
+		# formiga.pontoAtual = g.node[caminhos2[ratio_probabilidades.index(max(chance_escolhida))]]['ponto']
+		formiga.pontoAtual = g.node[caminhos2[ratio_probabilidades.index((chance_escolhida))]]['ponto']
 		formiga.pontoAtual.setObjeto(True)
 		g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].aumentaFeromonio()
 		# print(formiga.nome, str(pontoAntigo.numero), str(formiga.pontoAtual.numero), str(g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho']), g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].feromonio, 'PROBABILIDADE', max(ratio_probabilidades))
