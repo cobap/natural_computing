@@ -455,3 +455,9 @@ if __name__ == "__main__":
 
 	cidade = Cidade(n_vertices,chance_aresta, alfa, beta, 100, 20)
 	cidade.iniciaCidade()
+
+	# Proximos passos
+		# Implementar para que realmente o caminho seja uma chance de ida, não uma verdade
+		# Verificar rodar o ACO mais tempo antes de liberar os eventos
+		# Verificar rodar o ACO somente 1 vez no começo do grafo
+		# Verificar eliminar as arestas que o ACO não considerou como de maior feromonio (verificar se o grafo permanece conexo)
