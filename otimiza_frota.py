@@ -176,6 +176,9 @@ class Evento:
 		letra = random.randint(0, len(letras)-1)
 		self.nome =  str(letras[letra]) +str(letra) + str(random.getrandbits(128))
 
+	def setInicio(self, iterador):
+		self.inicio = iterador
+
 	def setIntensidadeRange(self):
 		self.intensidade = random.randint(1,3)
 		# Intensidade é sempre o número de envolvidos x3 que precisa para solucionar o problema
@@ -188,7 +191,7 @@ class Evento:
 		return self.nome + resultado
 
 class Cidade:
-	def __init__(self, n_vertices, chance_aresta, alfa, beta, iteracoes, qtdFormigas, rodadas, algoritmo_formiga):
+	def __init__(self, n_vertices, chance_aresta, alfa, beta, iteracoes, qtdFormigas, rodadas, algoritmo_formiga, reduz_grafo):
 		# Cria gráfico aleatório com n_vertices e % de existir uma aresta entre dois vertices
 		self.n_vertices = n_vertices
 		g = nx.fast_gnp_random_graph(n_vertices, chance_aresta)
@@ -230,6 +233,7 @@ class Cidade:
 		self.mediaAbelhas = random.randint(2,4)
 		self.qtdFormigasIndex = qtdFormigas
 		self.algoritmo_formiga = algoritmo_formiga
+		self.reduz_grafo = reduz_grafo
 
 		# plt.figure()
 		# nx.draw(g, with_labels=True)
@@ -468,15 +472,24 @@ class Cidade:
 				self.caminhaFormigaACO(formiga, self.g) if self.algoritmo_formiga == 1 else self.caminhaFormigaAleatoriamente(formiga, self.g)
 			iterador = iterador + 1
 
-		self.g = self.reduzirGrafo()
+		if(self.reduz_grafo == 1):
+			self.g = self.reduzirGrafo()
 
 		while(rodadas <= self.rodadas):
 			# A cada 3 iterações, criamos um novo evento na cidade
-			if iterador % 3 == 0:
+			if rodadas % 3 == 0:
 				if len(self.eventos_hold) >= len(self.hqs):
-					# print('LISTA CHEIA')
-					# print(len(self.eventos_hold), '-EVENTOS ON_HOLD', len(self.eventos), 	'- EVENTOS')
-					pass
+					print('LISTA CHEIA')
+					if self.eventos[0].inicio + self.n_vertices <= rodadas:
+						print("EVENTO:" , self.eventos[0].nome, self.eventos[0].intensidade, self.eventos[0].pontoAtual.numero, rodadas, 'TIME-OUT')
+						self.hqs[abelhaLider[0].id_hq].retornaPelotao(pelotoes[self.eventos[0].nome])
+						self.eventos.remove(self.eventos[0])
+
+						evento_on_hold = self.eventos_hold.pop()
+						print("EVENTO:" , evento_on_hold.nome, evento_on_hold.intensidade, evento_on_hold.pontoAtual.numero, rodadas, 'RE-ATIVO')
+						evento_on_hold.setInicio(rodadas)
+						self.eventos.append(self.g.node[evento_on_hold.pontoAtual.numero]['evento'])
+						self.acionaPelotaoParaAtaque(pelotoes, self.hqs[abelhaLider[0].id_hq], evento_on_hold)
 				else: 
 					# print('NOVO EVENTO NA CIDADE')
 					evento = self.criaEvento()
@@ -488,34 +501,33 @@ class Cidade:
 					
 					if(hqSelecionado is None):
 						self.eventos.remove(evento)
-						# print("EVENTO: " , evento.nome, 'INTENSIDADE: ', evento.intensidade, 'LOCAL', evento.pontoAtual.numero, "ITER", iterador, "STATUS", 'ON-HOLD')
-						print("EVENTO:" , evento.nome, evento.intensidade, evento.pontoAtual.numero, iterador, 'ON-HOLD')
+						# print("EVENTO: " , evento.nome, 'INTENSIDADE: ', evento.intensidade, 'LOCAL', evento.pontoAtual.numero, "ITER", rodadas, "STATUS", 'ON-HOLD')
+						print("EVENTO:" , evento.nome, evento.intensidade, evento.pontoAtual.numero, rodadas, 'ON-HOLD')
 					else:
-						print("EVENTO:" , evento.nome, evento.intensidade, evento.pontoAtual.numero, iterador, 'ATIVO')
+						print("EVENTO:" , evento.nome, evento.intensidade, evento.pontoAtual.numero, rodadas, 'ATIVO')
+						evento.setInicio(rodadas)
 						self.acionaPelotaoParaAtaque(pelotoes, hqSelecionado, evento)
 					
 			eventos_mortos = []
 			for evento in self.eventos:
-				# print('ABELHAS EM MOVIMENTO')
+				print('ABELHAS EM MOVIMENTO')
 				abelhaLider = pelotoes[evento.nome]
 				self.caminhaAbelhaOtimizado(abelhaLider[0], self.g)
 
 				#Caso tenha chego no evento
 				if(abelhaLider[0].pontoAtual == evento.pontoAtual):
 					# print('PELOTAO CHEGOU AO EVENTO!')
-					print("EVENTO:" , evento.nome, evento.intensidade, evento.pontoAtual.numero, iterador, 'COMPLETO')
+					print("EVENTO:" , evento.nome, evento.intensidade, evento.pontoAtual.numero, rodadas, 'COMPLETO')
 					eventos_mortos.append(evento)
 					self.eventos.remove(evento)
 
-					# TODO
-					# print('ABELHA LIDER: ', abelhaLider[0].id_hq) 
-					# print('HQ DA ABELHA: ', self.hqs[abelhaLider[0].id_hq].nome)
 					self.hqs[abelhaLider[0].id_hq].retornaPelotao(pelotoes[evento.nome])
 
 					if len(self.eventos_hold) > 0:
 						evento_on_hold = self.eventos_hold.pop()
 						# print('RE-ATIVANDO EVENTO - AGORA FALTAM:', len(self.eventos_hold))
-						print("EVENTO:" , evento_on_hold.nome, evento_on_hold.intensidade, evento_on_hold.pontoAtual.numero, iterador, 'RE-ATIVO')
+						print("EVENTO:" , evento_on_hold.nome, evento_on_hold.intensidade, evento_on_hold.pontoAtual.numero, rodadas, 'RE-ATIVO')
+						evento_on_hold.setInicio(rodadas)
 						self.eventos.append(self.g.node[evento_on_hold.pontoAtual.numero]['evento'])
 						self.acionaPelotaoParaAtaque(pelotoes, self.hqs[abelhaLider[0].id_hq], evento_on_hold)
 					
@@ -540,9 +552,14 @@ if __name__ == "__main__":
 	alfa = 0.1
 	beta = 2.5
 
-	cidade = Cidade(n_vertices,chance_aresta, alfa, beta, 50, 20, 100, 1)
+	cidade = Cidade(n_vertices,chance_aresta, alfa, beta, 50, 20, 1000, 1, 1)
 	cidade.iniciaCidade()
 
 	# Proximos passos
-		# Verificar eliminar as arestas que o ACO não considerou como de maior feromonio (verificar se o grafo permanece conexo)
-		# Implementar para que realmente o caminho das abelhas seja uma chance de ida, não uma verdade
+		#? Implementar para que realmente o caminho das abelhas seja uma chance de ida, não uma verdade
+		# Abelha sabe shortest path até o evento, será que faz diferença? - necessário que as arestas tenham todas weight
+		# Graficos mostrando nós que mais são afetados - quais são suas caracteristicas pré e pós redução? tinham maior grau? 
+		# Qt tempo em média se demora para atingit o evento - qd as formigas são ativadas ou qd andam aleatóriamente
+		# Como o item acima varia de acordo com o tempo
+		# Como tudo isso varia de acordo com o número de vertices, numero de arestas que começa o grafo, alfa e beta
+		# Qt de diferença faz caso as formigas rodem 10, 100 ou 10000 vezes antes das abelhas começarem? 
