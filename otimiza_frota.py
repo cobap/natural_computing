@@ -3,6 +3,7 @@ import math, random, copy, hashlib, sys
 import networkx as nx
 import matplotlib.pyplot as plt
 from random import choice
+import numpy as np
 
 '''
 *	Class Ponto:
@@ -230,7 +231,9 @@ class Cidade:
 		self.qtdFormigasIndex = qtdFormigas
 		self.algoritmo_formiga = algoritmo_formiga
 
-		nx.draw(g, with_labels=True)
+		# plt.figure()
+		# nx.draw(g, with_labels=True)
+		nx.draw_networkx(g, with_labels=True)
 		plt.savefig("grafico" + sys.argv[1] + ".png")
 		# plt.show()
 
@@ -384,6 +387,30 @@ class Cidade:
 		# for abelha in pelotoes[evento.nome]:
 		# 	print abelha
 
+	def reduzirGrafo(self):
+		# print('-------------------------------------------------------------------------')
+		# print('-------------------------REDUZINGO GRAFO--------------------')
+		# print(self.g.number_of_edges())
+		# eligible_edges = [(from_node,to_node,edge_attributes) for from_node,to_node,edge_attributes in self.g.edges(data=True) if edge_attributes['weight'] > threshold]
+		media_feromonio = [edge_attributes['caminho'].feromonio for from_node,to_node,edge_attributes in self.g.edges(data=True)]
+		media_feromonio = np.mean(media_feromonio)
+		# print(media_feromonio)
+		arestas_selecionadas = [(from_node,to_node,edge_attributes) for from_node,to_node,edge_attributes in self.g.edges(data=True) if edge_attributes['caminho'].feromonio > media_feromonio]
+		subGrafo = nx.Graph()
+		subGrafo.add_nodes_from(self.g.nodes(data=True))
+		subGrafo.add_edges_from(arestas_selecionadas)
+		# G = nx.DiGraph(((source, target, attr) for source, target, attr in my_network.edges_iter(data=True) if attr['weight'] > threshold))
+		# SG=G.subgraph( [n for n,attrdict in G.node.items() if attrdict ['type'] == 'X' ] )
+		# SG=networkx.Graph( [ (u,v,d) for u,v,d in G.edges(data=True) if d ['weight']>cutoff])
+		# print('É CONEXO?', nx.is_connected(subGrafo))
+		if(nx.is_connected(subGrafo) is False):
+			sys.exit("IMPOSSÍVEL CRIAR SUBGRAFO CONEXO")
+		nx.draw_networkx(subGrafo, node_color='b')
+		plt.savefig("subgrafico.png")
+		# print(subGrafo.number_of_edges())
+		# print('-------------------------------------------------------------------------')
+		return subGrafo
+
 	def reduzGrafo(self):
 		print('-------------------------------------------------------------------------')
 		print('-------------------------REDUZINGO GRAFO--------------------')
@@ -416,7 +443,8 @@ class Cidade:
 		print(self.g.edges())
 
 		print('É CONEXO?', nx.is_connected(subGrafo))
-		nx.draw(subGrafo, with_labels=True)
+		# nx.draw(subGrafo, with_labels=True)
+		nx.draw_networkx(subGrafo, node_color='b')
 		plt.savefig("subgrafico.png")
 		print('-------------------------------------------------------------------------')
 
@@ -440,7 +468,7 @@ class Cidade:
 				self.caminhaFormigaACO(formiga, self.g) if self.algoritmo_formiga == 1 else self.caminhaFormigaAleatoriamente(formiga, self.g)
 			iterador = iterador + 1
 
-		self.reduzGrafo()
+		self.g = self.reduzirGrafo()
 
 		while(rodadas <= self.rodadas):
 			# A cada 3 iterações, criamos um novo evento na cidade
