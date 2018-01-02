@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import math, random, copy, hashlib
+import math, random, copy, hashlib, sys
 import networkx as nx
 import matplotlib.pyplot as plt
 from random import choice
@@ -187,7 +187,7 @@ class Evento:
 		return self.nome + resultado
 
 class Cidade:
-	def __init__(self, n_vertices, chance_aresta, alfa, beta, iteracoes, qtdFormigas):
+	def __init__(self, n_vertices, chance_aresta, alfa, beta, iteracoes, qtdFormigas, rodadas, algoritmo_formiga):
 		# Cria gráfico aleatório com n_vertices e % de existir uma aresta entre dois vertices
 		self.n_vertices = n_vertices
 		g = nx.fast_gnp_random_graph(n_vertices, chance_aresta)
@@ -208,28 +208,31 @@ class Cidade:
 			# Também definimos que começa sem nenhuma formiga
 			g.node[no]['formiga'] = None
 			# Damos um print no nome real vs nome ficticio do nó - para podermos comparar depois
-			print(no, g.node[no]['ponto'].nome, g.node[no]['ponto'].x, g.node[no]['ponto'].y)
+			# print(no, g.node[no]['ponto'].nome, g.node[no]['ponto'].x, g.node[no]['ponto'].y)
 
 		# Para cada aresta dentro do grafo
 		for aresta in g.edges():
 			# Criamos um caminho que liga 
 			caminho = Caminho(g.node[aresta[0]]['ponto'], g.node[aresta[1]]['ponto'])
 			g[aresta[0]][aresta[1]]['caminho'] = caminho
+
 			# print(caminho)
 			# print(g[aresta[0]][aresta[1]]['caminho'].feromonio)
 
 		self.g = g
 		self.iteracoes = iteracoes
+		self.rodadas = rodadas
 		self.formigas = []
 		self.eventos = []
 		self.eventos_hold = []
 		self.hqs = []
 		self.mediaAbelhas = random.randint(2,4)
 		self.qtdFormigasIndex = qtdFormigas
+		self.algoritmo_formiga = algoritmo_formiga
 
 		nx.draw(g, with_labels=True)
-		plt.savefig("grafico.png")
-		plt.show()
+		plt.savefig("grafico" + sys.argv[1] + ".png")
+		# plt.show()
 
 	def getPontoAleatorio(self):
 		return self.g.node[random.randint(1, self.n_vertices-1)]['ponto']
@@ -242,7 +245,7 @@ class Cidade:
 		formigas_temp = [Formiga('PATRULHA', self.getPontoAleatorio()) for i in range(self.qtdFormigas)]
 
 		for formiga in formigas_temp:
-			print(formiga.nome, formiga.pontoAtual.numero)
+			# print(formiga.nome, formiga.pontoAtual.numero)
 			self.g.node[formiga.pontoAtual.numero]['formiga'] = formiga
 			self.formigas.append(self.g.node[formiga.pontoAtual.numero]['formiga'])
 
@@ -277,7 +280,7 @@ class Cidade:
 			formiga.pontoAtual = g.node[caminhoEscolhido2]['ponto']
 			formiga.pontoAtual.setObjeto(True)
 			g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].aumentaFeromonio()
-			print(str(pontoAntigo.numero) + " -> " + str(formiga.pontoAtual.numero), str(g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho']), g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].feromonio)
+			# print(str(pontoAntigo.numero) + " -> " + str(formiga.pontoAtual.numero), str(g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho']), g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].feromonio)
 
 	def caminhaAbelhaOtimizado(self, abelha, g):
 		# print(formiga.pontoAtual.numero)
@@ -304,7 +307,7 @@ class Cidade:
 		abelha.pontoAtual.setObjeto(True)
 		# print(abelha.pontoAtual.numero)
 		abelha.addVerticeBlackList(pontoAntigo.numero)
-		print(abelha.nome, abelha.id_hq ,str(pontoAntigo.numero) + " -> " + str(abelha.pontoAtual.numero), str(g[pontoAntigo.numero][abelha.pontoAtual.numero]['caminho']), g[pontoAntigo.numero][abelha.pontoAtual.numero]['caminho'].feromonio)
+		# print(abelha.nome, abelha.id_hq ,str(pontoAntigo.numero) + " -> " + str(abelha.pontoAtual.numero), str(g[pontoAntigo.numero][abelha.pontoAtual.numero]['caminho']), g[pontoAntigo.numero][abelha.pontoAtual.numero]['caminho'].feromonio)
 
 	def caminhaFormigaACO(self, formiga, g):
 		# print(formiga.nome)
@@ -333,12 +336,12 @@ class Cidade:
 		ratio_probabilidades = [probabilidade/somatoria_probabilidades for probabilidade in probabilidades]
 		ratio_probabilidades.sort(reverse=True)
 		chance_escolhida = None
-		print(ratio_probabilidades)
+		# print(ratio_probabilidades)
 		while chance_escolhida is None:
 			for chance in ratio_probabilidades:
 				if random.random() < chance:
 					chance_escolhida = chance
-		print(chance_escolhida)
+		# print(chance_escolhida)
 
 
 		# somatoria_ratio_probabilidades = sum(float(prob) for prob in ratio_probabilidades)
@@ -350,13 +353,13 @@ class Cidade:
 		g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].aumentaFeromonio()
 		# print(formiga.nome, str(pontoAntigo.numero), str(formiga.pontoAtual.numero), str(g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho']), g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].feromonio, 'PROBABILIDADE', max(ratio_probabilidades))
 		formiga.addVerticeBlackList(pontoAntigo.numero)
-		print(formiga.nome, str(pontoAntigo.numero), str(formiga.pontoAtual.numero), g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].feromonio, max(ratio_probabilidades))
+		# print(formiga.nome, str(pontoAntigo.numero), str(formiga.pontoAtual.numero), g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].feromonio, max(ratio_probabilidades))
 
 	def selecionaHQ(self, evento):
 		hqDisponiveis = [hq for hq in  self.hqs if hq.abelhasAtual is not 0]
-		print('HQ DISPONIVEIS: ')
-		for hq in hqDisponiveis:
-			print(hq.nome, hq.id, hq.abelhasAtual)
+		# print('HQ DISPONIVEIS: ')
+		# for hq in hqDisponiveis:
+		# 	print(hq.nome, hq.id, hq.abelhasAtual)
 		distancias = [math.sqrt(pow(hqSelecionado.pontoAtual.x - evento.pontoAtual.x ,2) + pow(hqSelecionado.pontoAtual.y - evento.pontoAtual.y ,2)) for hqSelecionado in hqDisponiveis]
 		
 		if len(distancias) == 0:
@@ -365,7 +368,7 @@ class Cidade:
 		
 		# hqSelecionado = self.hqs[distancias.index(min(distancias))]
 		hqSelecionado = hqDisponiveis[distancias.index(min(distancias))]
-		print('MENOR DISTANCIA:', hqSelecionado.nome)
+		# print('MENOR DISTANCIA:', hqSelecionado.nome)
 		return hqSelecionado
 
 	def acionaPelotaoParaAtaque(self, pelotoes, hqSelecionado, evento):
@@ -381,10 +384,48 @@ class Cidade:
 		# for abelha in pelotoes[evento.nome]:
 		# 	print abelha
 
+	def reduzGrafo(self):
+		print('-------------------------------------------------------------------------')
+		print('-------------------------REDUZINGO GRAFO--------------------')
+		melhor_aresta = {}
+		nos = {}
+		for no in self.g.nodes():
+			# print(no)
+			vizinhos = self.g.neighbors(no)
+			# print(vizinhos)
+			feromonioVizinhos = [self.g[no][vizinho]['caminho'].feromonio for vizinho in vizinhos]
+			melhor_aresta[self.g[no][vizinhos[feromonioVizinhos.index(max(feromonioVizinhos))]]['caminho']] = no
+			nos[str(no)] = no
+			# print(feromonioVizinhos)
+			# print('maior feromonio', feromonioVizinhos.index(max(feromonioVizinhos)))
+			# print('no com maior feromonio', vizinhos[feromonioVizinhos.index(max(feromonioVizinhos))])
+			# g.node[caminhos2[feromoniosCaminhos.index(max(feromoniosCaminhos))]]['ponto']
+		# print(melhor_aresta)
+		# print(nos)
+
+		subGrafo = nx.Graph()
+		for no in nos.values():
+			subGrafo.add_node(no)
+
+		for aresta in melhor_aresta.keys():
+			subGrafo.add_edge(aresta.pontoA.numero, aresta.pontoB.numero, caminho=aresta)
+			# print(aresta)
+			# print(aresta.pontoA.numero)
+			# g[aresta[0]][aresta[1]]['caminho'] = caminho
+		print(subGrafo.edges())
+		print(self.g.edges())
+
+		print('É CONEXO?', nx.is_connected(subGrafo))
+		nx.draw(subGrafo, with_labels=True)
+		plt.savefig("subgrafico.png")
+		print('-------------------------------------------------------------------------')
+
+
 	def iniciaCidade(self):
 		# Inicia cidade - criando formigas, HQs, eventos, etc...
 		# random.seed(42)
 		iterador = 1
+		rodadas = 1
 		self.criaFormigas()
 		self.criaHQs()
 		pelotoes = {}
@@ -396,11 +437,17 @@ class Cidade:
 
 		while(iterador <= self.iteracoes):
 			for formiga in self.formigas:
-				self.caminhaFormigaACO(formiga, self.g)
+				self.caminhaFormigaACO(formiga, self.g) if self.algoritmo_formiga == 1 else self.caminhaFormigaAleatoriamente(formiga, self.g)
+			iterador = iterador + 1
 
+		self.reduzGrafo()
+
+		while(rodadas <= self.rodadas):
 			# A cada 3 iterações, criamos um novo evento na cidade
 			if iterador % 3 == 0:
-				if len(self.eventos_hold) > len(self.hqs):
+				if len(self.eventos_hold) >= len(self.hqs):
+					# print('LISTA CHEIA')
+					# print(len(self.eventos_hold), '-EVENTOS ON_HOLD', len(self.eventos), 	'- EVENTOS')
 					pass
 				else: 
 					# print('NOVO EVENTO NA CIDADE')
@@ -421,6 +468,7 @@ class Cidade:
 					
 			eventos_mortos = []
 			for evento in self.eventos:
+				# print('ABELHAS EM MOVIMENTO')
 				abelhaLider = pelotoes[evento.nome]
 				self.caminhaAbelhaOtimizado(abelhaLider[0], self.g)
 
@@ -438,12 +486,14 @@ class Cidade:
 
 					if len(self.eventos_hold) > 0:
 						evento_on_hold = self.eventos_hold.pop()
+						# print('RE-ATIVANDO EVENTO - AGORA FALTAM:', len(self.eventos_hold))
 						print("EVENTO:" , evento_on_hold.nome, evento_on_hold.intensidade, evento_on_hold.pontoAtual.numero, iterador, 'RE-ATIVO')
+						self.eventos.append(self.g.node[evento_on_hold.pontoAtual.numero]['evento'])
 						self.acionaPelotaoParaAtaque(pelotoes, self.hqs[abelhaLider[0].id_hq], evento_on_hold)
 					
 			# print('NUMERO EVENTOS: ', len(self.eventos))
 
-			iterador = iterador + 1
+			rodadas = rodadas + 1
 
 		# Para cada aresta dentro do grafo, decaia o feromonio
 		for aresta in self.g.edges():
@@ -462,11 +512,9 @@ if __name__ == "__main__":
 	alfa = 0.1
 	beta = 2.5
 
-	cidade = Cidade(n_vertices,chance_aresta, alfa, beta, 100, 20)
+	cidade = Cidade(n_vertices,chance_aresta, alfa, beta, 50, 20, 100, 1)
 	cidade.iniciaCidade()
 
 	# Proximos passos
-		# Implementar para que realmente o caminho seja uma chance de ida, não uma verdade
-		# Verificar rodar o ACO mais tempo antes de liberar os eventos
-		# Verificar rodar o ACO somente 1 vez no começo do grafo
 		# Verificar eliminar as arestas que o ACO não considerou como de maior feromonio (verificar se o grafo permanece conexo)
+		# Implementar para que realmente o caminho das abelhas seja uma chance de ida, não uma verdade
