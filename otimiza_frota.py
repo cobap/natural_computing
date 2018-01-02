@@ -118,6 +118,19 @@ class Abelha:
 	def isOnBlackList(self, n_vertice):
 		return n_vertice in self.black_list
 
+	def calculaMelhorCaminho(self, g, ponto_evento):
+		# print('INDO DE ', self.pontoAtual.numero, 'ATÉ ', ponto_evento)
+		# print(nx.shortest_path(g,source=self.pontoAtual.numero, target=ponto_evento))
+		# print('MELHOR CAMINHO COM PESO')
+		shortest_path = nx.shortest_path(g,source=self.pontoAtual.numero, target=ponto_evento, weight='feromonio')
+		# shortest_path.pop(0)
+		if(self.pontoAtual.numero != ponto_evento):
+			shortest_path.pop(0)
+		# print(shortest_path)
+		# print(self.pontoAtual.numero)
+		# print(type(shortest_path))
+		self.shortest_path = shortest_path
+
 	def __str__(self):
 		return self.nome
 
@@ -191,7 +204,7 @@ class Evento:
 		return self.nome + resultado
 
 class Cidade:
-	def __init__(self, n_vertices, chance_aresta, alfa, beta, iteracoes, qtdFormigas, rodadas, algoritmo_formiga, reduz_grafo):
+	def __init__(self, n_vertices, chance_aresta, alfa, beta, iteracoes, qtdFormigas, rodadas, algoritmo_formiga, reduz_grafo, calcula_path):
 		# Cria gráfico aleatório com n_vertices e % de existir uma aresta entre dois vertices
 		self.n_vertices = n_vertices
 		g = nx.fast_gnp_random_graph(n_vertices, chance_aresta)
@@ -234,6 +247,7 @@ class Cidade:
 		self.qtdFormigasIndex = qtdFormigas
 		self.algoritmo_formiga = algoritmo_formiga
 		self.reduz_grafo = reduz_grafo
+		self.calcula_path = calcula_path
 
 		# plt.figure()
 		# nx.draw(g, with_labels=True)
@@ -290,6 +304,19 @@ class Cidade:
 			# print(str(pontoAntigo.numero) + " -> " + str(formiga.pontoAtual.numero), str(g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho']), g[pontoAntigo.numero][formiga.pontoAtual.numero]['caminho'].feromonio)
 
 	def caminhaAbelhaOtimizado(self, abelha, g):
+		# print(formiga.pontoAtual.numero)
+		# print('CAMINHO', abelha.shortest_path)
+		pontoAntigo = abelha.pontoAtual
+		# print('ABELHA ESTAVA EM', pontoAntigo.numero)
+		# print(abelha.pontoAtual.numero)
+		abelha.pontoAtual.setObjeto(False)
+
+		abelha.pontoAtual = g.node[abelha.shortest_path.pop(0)]['ponto']
+		abelha.pontoAtual.setObjeto(True)
+		# print('ABELHA FOI PARA', abelha.pontoAtual.numero)
+		# print(abelha.nome, abelha.id_hq ,str(pontoAntigo.numero) + " -> " + str(abelha.pontoAtual.numero))
+
+	def caminhaAbelhaFeromonio(self, abelha, g):
 		# print(formiga.pontoAtual.numero)
 		pontoAntigo = abelha.pontoAtual
 		# print(abelha.pontoAtual.numero)
@@ -378,7 +405,7 @@ class Cidade:
 		# print('MENOR DISTANCIA:', hqSelecionado.nome)
 		return hqSelecionado
 
-	def acionaPelotaoParaAtaque(self, pelotoes, hqSelecionado, evento):
+	def acionaPelotaoParaAtaque(self, pelotoes, hqSelecionado, evento, g):
 		# Criamos um pelotao com o nome do evento
 		pelotoes[evento.nome] = hqSelecionado.lancaPelotao(evento)
 		
@@ -386,7 +413,7 @@ class Cidade:
 		while(pelotoes[evento.nome] == None):
 			evento.intensidade = evento.intensidade - 1
 			pelotoes[evento.nome] = hqSelecionado.lancaPelotao(evento)
-
+		pelotoes[evento.nome][0].calculaMelhorCaminho(g, evento.pontoAtual.numero)
 		# print('ABELHAS PRONTAS PARA O ATAQUE ->->')
 		# for abelha in pelotoes[evento.nome]:
 		# 	print abelha
@@ -403,6 +430,9 @@ class Cidade:
 		subGrafo = nx.Graph()
 		subGrafo.add_nodes_from(self.g.nodes(data=True))
 		subGrafo.add_edges_from(arestas_selecionadas)
+
+		for edge in subGrafo.edges(data=True):
+			subGrafo[edge[0]][edge[1]]['feromonio'] = edge[2]['caminho'].feromonio
 		# G = nx.DiGraph(((source, target, attr) for source, target, attr in my_network.edges_iter(data=True) if attr['weight'] > threshold))
 		# SG=G.subgraph( [n for n,attrdict in G.node.items() if attrdict ['type'] == 'X' ] )
 		# SG=networkx.Graph( [ (u,v,d) for u,v,d in G.edges(data=True) if d ['weight']>cutoff])
@@ -452,7 +482,6 @@ class Cidade:
 		plt.savefig("subgrafico.png")
 		print('-------------------------------------------------------------------------')
 
-
 	def iniciaCidade(self):
 		# Inicia cidade - criando formigas, HQs, eventos, etc...
 		# random.seed(42)
@@ -479,7 +508,7 @@ class Cidade:
 			# A cada 3 iterações, criamos um novo evento na cidade
 			if rodadas % 3 == 0:
 				if len(self.eventos_hold) >= len(self.hqs):
-					print('LISTA CHEIA')
+					# print('LISTA CHEIA')
 					if self.eventos[0].inicio + self.n_vertices <= rodadas:
 						print("EVENTO:" , self.eventos[0].nome, self.eventos[0].intensidade, self.eventos[0].pontoAtual.numero, rodadas, 'TIME-OUT')
 						self.hqs[abelhaLider[0].id_hq].retornaPelotao(pelotoes[self.eventos[0].nome])
@@ -489,7 +518,7 @@ class Cidade:
 						print("EVENTO:" , evento_on_hold.nome, evento_on_hold.intensidade, evento_on_hold.pontoAtual.numero, rodadas, 'RE-ATIVO')
 						evento_on_hold.setInicio(rodadas)
 						self.eventos.append(self.g.node[evento_on_hold.pontoAtual.numero]['evento'])
-						self.acionaPelotaoParaAtaque(pelotoes, self.hqs[abelhaLider[0].id_hq], evento_on_hold)
+						self.acionaPelotaoParaAtaque(pelotoes, self.hqs[abelhaLider[0].id_hq], evento_on_hold, self.g)
 				else: 
 					# print('NOVO EVENTO NA CIDADE')
 					evento = self.criaEvento()
@@ -506,13 +535,17 @@ class Cidade:
 					else:
 						print("EVENTO:" , evento.nome, evento.intensidade, evento.pontoAtual.numero, rodadas, 'ATIVO')
 						evento.setInicio(rodadas)
-						self.acionaPelotaoParaAtaque(pelotoes, hqSelecionado, evento)
+						self.acionaPelotaoParaAtaque(pelotoes, hqSelecionado, evento, self.g)
 					
 			eventos_mortos = []
 			for evento in self.eventos:
-				print('ABELHAS EM MOVIMENTO')
+				# print('ABELHAS EM MOVIMENTO')
 				abelhaLider = pelotoes[evento.nome]
-				self.caminhaAbelhaOtimizado(abelhaLider[0], self.g)
+				if(self.calcula_path == 0):
+					# Caminha baseado no maior feromonio que encontra
+					self.caminhaAbelhaFeromonio(abelhaLider[0], self.g)
+				else:
+					self.caminhaAbelhaOtimizado(abelhaLider[0], self.g)
 
 				#Caso tenha chego no evento
 				if(abelhaLider[0].pontoAtual == evento.pontoAtual):
@@ -529,7 +562,7 @@ class Cidade:
 						print("EVENTO:" , evento_on_hold.nome, evento_on_hold.intensidade, evento_on_hold.pontoAtual.numero, rodadas, 'RE-ATIVO')
 						evento_on_hold.setInicio(rodadas)
 						self.eventos.append(self.g.node[evento_on_hold.pontoAtual.numero]['evento'])
-						self.acionaPelotaoParaAtaque(pelotoes, self.hqs[abelhaLider[0].id_hq], evento_on_hold)
+						self.acionaPelotaoParaAtaque(pelotoes, self.hqs[abelhaLider[0].id_hq], evento_on_hold, self.g)
 					
 			# print('NUMERO EVENTOS: ', len(self.eventos))
 
@@ -552,14 +585,13 @@ if __name__ == "__main__":
 	alfa = 0.1
 	beta = 2.5
 
-	cidade = Cidade(n_vertices,chance_aresta, alfa, beta, 50, 20, 1000, 1, 1)
+	cidade = Cidade(n_vertices,chance_aresta, alfa, beta, 50, 20, 1000, 1, 1, 1)
 	cidade.iniciaCidade()
 
 	# Proximos passos
-		#? Implementar para que realmente o caminho das abelhas seja uma chance de ida, não uma verdade
-		# Abelha sabe shortest path até o evento, será que faz diferença? - necessário que as arestas tenham todas weight
 		# Graficos mostrando nós que mais são afetados - quais são suas caracteristicas pré e pós redução? tinham maior grau? 
 		# Qt tempo em média se demora para atingit o evento - qd as formigas são ativadas ou qd andam aleatóriamente
 		# Como o item acima varia de acordo com o tempo
 		# Como tudo isso varia de acordo com o número de vertices, numero de arestas que começa o grafo, alfa e beta
 		# Qt de diferença faz caso as formigas rodem 10, 100 ou 10000 vezes antes das abelhas começarem? 
+		#? Implementar para que realmente o caminho das abelhas seja uma chance de ida, não uma verdade
