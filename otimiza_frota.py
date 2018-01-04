@@ -589,9 +589,13 @@ if __name__ == "__main__":
 	cidade.iniciaCidade()
 
 	# Proximos passos
+		#número de arestas vs número de vértices 
+		#número de arestas vs numero de vertices com aumento da probabilidade
 		# Graficos mostrando nós que mais são afetados - quais são suas caracteristicas pré e pós redução? tinham maior grau? 
 		# Qt tempo em média se demora para atingit o evento - qd as formigas são ativadas ou qd andam aleatóriamente
 		# Como o item acima varia de acordo com o tempo
 		# Como tudo isso varia de acordo com o número de vertices, numero de arestas que começa o grafo, alfa e beta
 		# Qt de diferença faz caso as formigas rodem 10, 100 ou 10000 vezes antes das abelhas começarem? 
 		#? Implementar para que realmente o caminho das abelhas seja uma chance de ida, não uma verdade
+		# percentual resultados eliminação de arestas
+		# percentual de resultados que da errado - quais os possíveis erros
