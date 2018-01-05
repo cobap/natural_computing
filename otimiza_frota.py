@@ -205,18 +205,19 @@ class Evento:
 		return self.nome + resultado
 
 class Cidade:
-	def __init__(self, n_vertices, chance_aresta, alfa, beta, iteracoes, qtdFormigas, rodadas, algoritmo_formiga, reduz_grafo, calcula_path):
+	def __init__(self, versao, n_vertices, chance_aresta, alfa, beta, iteracoes, qtdFormigas, rodadas, algoritmo_formiga, reduz_grafo, calcula_path):
 		
 		# Cria gráfico aleatório com n_vertices e % de existir uma aresta entre dois vertices
 		self.n_vertices = n_vertices
+		self.versao = versao
 		if(len(sys.argv) == 2):
-			print('LENDO GRAFO DO ARQUIVO')
-			g = nx.read_yaml('./grafo/' +sys.argv[1] + '.yaml')
+			# print('LENDO GRAFO DO ARQUIVO')
+			g = nx.read_yaml('./grafo/' + sys.argv[1] + '.yaml')
 		else:
-			print('CRIANDO GRAFO DO ZERO')
+			# print('CRIANDO GRAFO DO ZERO')
 			g = nx.fast_gnp_random_graph(n_vertices, chance_aresta)
 			# Verifica se vertíce é conexo
-			print('TESTANDO SE É CONEXO')
+			# print('TESTANDO SE É CONEXO')
 			while(nx.is_connected(g) is not True):
 				# Caso não seja, o recrie até que seja - comoqueremos facilitar as coisas, só podemos avançar com um vertice que permite andar por uma aresta
 				g = nx.fast_gnp_random_graph(5, 0.4)
@@ -262,11 +263,12 @@ class Cidade:
 
 		# plt.figure()
 		# nx.draw(g, with_labels=True)
-		plt.figure(1)
+		plt.figure(int('123' + str(self.versao)))
 		nx.draw_networkx(g, with_labels=True)
 		# nx.draw_spectral(g, with_labels=True)
 		# plt.savefig("graficoOriginal" + sys.argv[1] + ".png")
-		plt.savefig("./imgs/graficoOriginal.png")
+		plt.savefig("./imgs/graficoOriginal" + str(self.versao) + ".png")
+		plt.gcf().clear()
 		# plt.show()
 
 	def getPontoAleatorio(self):
@@ -469,8 +471,8 @@ class Cidade:
 		# SG=networkx.Graph( [ (u,v,d) for u,v,d in G.edges(data=True) if d ['weight']>cutoff])
 		# print('É CONEXO?', nx.is_connected(subGrafo))
 		if(nx.is_connected(subGrafo) is False):
-			sys.exit("IMPOSSÍVEL CRIAR SUBGRAFO CONEXO")
-		# plt.savefig("subgrafico.png")
+			print("IMPOSSÍVEL CRIAR SUBGRAFO CONEXO > ", self.versao)
+			return None
 		sys.stdout = output_grafo
 		print('#VERTICES', '#ARESTAS', 'AVG_GRAU_POR_VERTICE', 'AVG_FEROMONIO_ARESTA')
 		degrees = subGrafo.degree()
@@ -482,10 +484,10 @@ class Cidade:
 		print(subGrafo.number_of_nodes(), subGrafo.number_of_edges(), avg_degree, avg_feromonio)
 		sys.stdout = sys.__stdout__  
 
-		plt.figure(2)
+		plt.figure('321' + str(self.versao))
 		nx.draw_networkx(subGrafo, node_color='b', with_labels=True)
-		# nx.draw_spectral(subGrafo, node_color='b', with_labels=True)
-		plt.savefig("./imgs/graficoModificado.png")
+		plt.savefig("./imgs/graficoModificado" + str(self.versao) + ".png")
+		plt.gcf().clear()
 		# print(subGrafo.number_of_edges())
 		# print('-------------------------------------------------------------------------')
 		nx.write_yaml(self.g,'./grafo/grafo_modificado.yaml')
@@ -516,6 +518,8 @@ class Cidade:
 
 		if(self.reduz_grafo == 1):
 			self.g = self.reduzirGrafo()
+			if(self.g is None):
+				return None
 
 		sys.stdout = output_eventos
 		print("EVENTO", "NOME", "INTENSIDADE", "PONTO", "GRAU_ATUAL", "GRAU_ORIGINAL", "RODADAS", "STATUS")
@@ -600,25 +604,42 @@ class Cidade:
 
 		output_eventos.close()
 
-
-
 ########################
 #-------------------- MAIN --------------------#
 ########################
 if __name__ == "__main__":
-	output_eventos = open("./results/eventos_output.csv", 'w')
-	output_grafo = open("./results/grafo_output.csv", 'w')
-	output_alg = open("./results/grafo_algoritmo_naturais.csv", 'w')
-	# sys.stdout = output_alg
-	# sys.stdout = sys.__stdout__  
-	n_vertices = 15
-	chance_aresta = 0.4
-	alfa = 0.1
-	beta = 2.5
 
-	cidade = Cidade(n_vertices,chance_aresta, alfa, beta, 50, 20, 1000, 1, 1, 1)
-	cidade.iniciaCidade()
-	# plt.show()
+	# Cria uma lista com a lista de todos os argumentos de uma cidade
+	input_keys = ['versao', 'n_vertices', 'chance_aresta', 'alfa', 'beta', 'iteracoes', 'qtdFormigas', 'rodadas', 'algoritmo_formiga', 'reduz_grafo', 'calcula_path']
+	input_lines = None
+	with open("inputs.csv") as file:
+		input_lines = [l.strip() for l in file]
+	input_lines = input_lines[1::]
+	valores_processados = [[int(valor) if "." not in valor else float(valor) for valor in linha.split(',')] for linha in input_lines]
+
+	# Para cada argumento da lista de argumentos, quero ajustar o dicionários e criar uma cidade
+	for linha in valores_processados:
+		dict_arg = {}
+		for valor in range(0, len(input_keys)):
+			dict_arg[input_keys[valor]] = linha[valor]
+		cidade = Cidade(**dict_arg)
+		output_eventos = open("./results/eventos_output" + str(dict_arg['versao']) + ".csv", 'w')
+		output_grafo = open("./results/grafo_output" + str(dict_arg['versao']) + ".csv", 'w')
+		output_alg = open("./results/grafo_algoritmo_naturais" + str(dict_arg['versao']) + ".csv", 'w')
+		cidade.iniciaCidade()
+		output_eventos.close()
+		output_grafo.close()
+		output_alg.close()
+	
+	
+
+
+
+	# cidade.iniciaCidade()
+	# cidade = Cidade(n_vertices,chance_aresta, alfa, beta, 50, 20, 1000, 1, 1, 1)
+
+
+
 	# Proximos passos
 		#OK número de arestas vs número de vértices 
 		#OK número de arestas vs numero de vertices com aumento da probabilidade
