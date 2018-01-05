@@ -1,0 +1,443 @@
+!!python/object:networkx.classes.graph.Graph
+adj: &id056
+  0:
+    1: &id002
+      caminho: !!python/object:__main__.Caminho
+        distancia: 2.23606797749979
+        feromonio: 9.999980931625189e-05
+        feromonioInicial: 1.0e-05
+        pontoA: &id001 !!python/object:__main__.Ponto {grau_original: 7, nome: 18K10,
+          numero: 0, objeto: true, x: 3, y: 8}
+        pontoB: &id003 !!python/object:__main__.Ponto {grau_original: 9, nome: 73W22,
+          numero: 1, objeto: false, x: 4, y: 10}
+    2: &id008
+      caminho: !!python/object:__main__.Caminho
+        distancia: 1.4142135623730951
+        feromonio: 9.999672081495217e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id001
+        pontoB: &id004 !!python/object:__main__.Ponto {grau_original: 7, nome: 1Z25,
+          numero: 2, objeto: false, x: 4, y: 9}
+    3: &id011
+      caminho: !!python/object:__main__.Caminho
+        distancia: 4.123105625617661
+        feromonio: 9.989388833880037e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id001
+        pontoB: &id012 !!python/object:__main__.Ponto {grau_original: 6, nome: 12W22,
+          numero: 3, objeto: true, x: 4, y: 4}
+    6: &id021
+      caminho: !!python/object:__main__.Caminho
+        distancia: 0.001
+        feromonio: 9.995432240925493e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id001
+        pontoB: &id005 !!python/object:__main__.Ponto {grau_original: 8, nome: 29Y24,
+          numero: 6, objeto: true, x: 3, y: 8}
+    9: &id032
+      caminho: !!python/object:__main__.Caminho
+        distancia: 7.615773105863909
+        feromonio: 9.992264459898547e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id001
+        pontoB: &id006 !!python/object:__main__.Ponto {grau_original: 6, nome: 21E4,
+          numero: 9, objeto: false, x: 6, y: 1}
+    13: &id046
+      caminho: !!python/object:__main__.Caminho
+        distancia: 2.23606797749979
+        feromonio: 9.972610725500468e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id001
+        pontoB: &id010 !!python/object:__main__.Ponto {grau_original: 5, nome: 74Z25,
+          numero: 13, objeto: true, x: 1, y: 7}
+    14: &id051
+      caminho: !!python/object:__main__.Caminho
+        distancia: 4.0
+        feromonio: 9.988209815422264e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id001
+        pontoB: &id007 !!python/object:__main__.Ponto {grau_original: 5, nome: 77K10,
+          numero: 14, objeto: false, x: 7, y: 8}
+  1:
+    0: *id002
+    2: &id009
+      caminho: !!python/object:__main__.Caminho
+        distancia: 1.0
+        feromonio: 9.999500200419472e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id003
+        pontoB: *id004
+    4: &id015
+      caminho: !!python/object:__main__.Caminho
+        distancia: 6.324555320336759
+        feromonio: 9.994924712139437e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id003
+        pontoB: &id016 !!python/object:__main__.Ponto {grau_original: 3, nome: 68M12,
+          numero: 4, objeto: true, x: 10, y: 8}
+    5: &id019
+      caminho: !!python/object:__main__.Caminho
+        distancia: 9.219544457292887
+        feromonio: 9.989388833880037e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id003
+        pontoB: &id013 !!python/object:__main__.Ponto {grau_original: 5, nome: 98E4,
+          numero: 5, objeto: false, x: 2, y: 1}
+    6: &id022
+      caminho: !!python/object:__main__.Caminho
+        distancia: 2.23606797749979
+        feromonio: 9.958254420820709e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id003
+        pontoB: *id005
+    9: &id033
+      caminho: !!python/object:__main__.Caminho
+        distancia: 9.219544457292887
+        feromonio: 9.983826907300773e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id003
+        pontoB: *id006
+    11: &id040
+      caminho: !!python/object:__main__.Caminho
+        distancia: 7.280109889280518
+        feromonio: 9.99140495544283e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id003
+        pontoB: &id018 !!python/object:__main__.Ponto {grau_original: 3, nome: 89O14,
+          numero: 11, objeto: false, x: 6, y: 3}
+    12: &id043
+      caminho: !!python/object:__main__.Caminho
+        distancia: 5.0
+        feromonio: 9.985444216570696e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id003
+        pontoB: &id014 !!python/object:__main__.Ponto {grau_original: 3, nome: 81K10,
+          numero: 12, objeto: false, x: 1, y: 6}
+    14: &id052
+      caminho: !!python/object:__main__.Caminho
+        distancia: 3.605551275463989
+        feromonio: 9.975349652950422e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id003
+        pontoB: *id007
+  2:
+    0: *id008
+    1: *id009
+    6: &id023
+      caminho: !!python/object:__main__.Caminho
+        distancia: 1.4142135623730951
+        feromonio: 9.999916647515822e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id004
+        pontoB: *id005
+    7: &id026
+      caminho: !!python/object:__main__.Caminho
+        distancia: 8.06225774829855
+        feromonio: 9.986899794913626e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id004
+        pontoB: &id017 !!python/object:__main__.Ponto {grau_original: 6, nome: 63L11,
+          numero: 7, objeto: true, x: 8, y: 2}
+    9: &id034
+      caminho: !!python/object:__main__.Caminho
+        distancia: 8.246211251235321
+        feromonio: 9.97781468765538e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id004
+        pontoB: *id006
+    13: &id047
+      caminho: !!python/object:__main__.Caminho
+        distancia: 3.605551275463989
+        feromonio: 9.989388833880037e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id004
+        pontoB: *id010
+    14: &id053
+      caminho: !!python/object:__main__.Caminho
+        distancia: 3.1622776601683795
+        feromonio: 9.97781468765538e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id004
+        pontoB: *id007
+  3:
+    0: *id011
+    5: &id020
+      caminho: !!python/object:__main__.Caminho
+        distancia: 3.605551275463989
+        feromonio: 9.99870992992183e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id012
+        pontoB: *id013
+    8: &id030
+      caminho: !!python/object:__main__.Caminho
+        distancia: 3.605551275463989
+        feromonio: 9.993038013908693e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id012
+        pontoB: &id024 !!python/object:__main__.Ponto {grau_original: 3, nome: 64N13,
+          numero: 8, objeto: false, x: 7, y: 2}
+    10: &id037
+      caminho: !!python/object:__main__.Caminho
+        distancia: 6.082762530298219
+        feromonio: 9.999550180377526e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id012
+        pontoB: &id025 !!python/object:__main__.Ponto {grau_original: 4, nome: 47R17,
+          numero: 10, objeto: false, x: 3, y: 10}
+    12: &id044
+      caminho: !!python/object:__main__.Caminho
+        distancia: 3.605551275463989
+        feromonio: 9.999153585021714e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id012
+        pontoB: *id014
+    14: &id054
+      caminho: !!python/object:__main__.Caminho
+        distancia: 5.0
+        feromonio: 9.990449950492033e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id012
+        pontoB: *id007
+  4:
+    1: *id015
+    7: &id027
+      caminho: !!python/object:__main__.Caminho
+        distancia: 6.324555320336759
+        feromonio: 9.999444667132747e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id016
+        pontoB: *id017
+    11: &id041
+      caminho: !!python/object:__main__.Caminho
+        distancia: 6.4031242374328485
+        feromonio: 9.999704873345695e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id016
+        pontoB: *id018
+  5:
+    1: *id019
+    3: *id020
+    7: &id028
+      caminho: !!python/object:__main__.Caminho
+        distancia: 6.082762530298219
+        feromonio: 9.997003093271217e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id013
+        pontoB: *id017
+    11: &id042
+      caminho: !!python/object:__main__.Caminho
+        distancia: 4.47213595499958
+        feromonio: 9.999153585021714e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id013
+        pontoB: *id018
+    13: &id048
+      caminho: !!python/object:__main__.Caminho
+        distancia: 6.082762530298219
+        feromonio: 9.997302783944096e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id013
+        pontoB: *id010
+  6:
+    0: *id021
+    1: *id022
+    2: *id023
+    7: &id029
+      caminho: !!python/object:__main__.Caminho
+        distancia: 7.810249675906654
+        feromonio: 9.999059538913015e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id005
+        pontoB: *id017
+    8: &id031
+      caminho: !!python/object:__main__.Caminho
+        distancia: 7.211102550927978
+        feromonio: 9.997815254994717e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id005
+        pontoB: *id024
+    9: &id035
+      caminho: !!python/object:__main__.Caminho
+        distancia: 7.615773105863909
+        feromonio: 9.989388833880037e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id005
+        pontoB: *id006
+    10: &id038
+      caminho: !!python/object:__main__.Caminho
+        distancia: 2.0
+        feromonio: 9.975349652950422e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id005
+        pontoB: *id025
+    13: &id049
+      caminho: !!python/object:__main__.Caminho
+        distancia: 2.23606797749979
+        feromonio: 9.975349652950422e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id005
+        pontoB: *id010
+  7:
+    2: *id026
+    4: *id027
+    5: *id028
+    6: *id029
+    10: &id039
+      caminho: !!python/object:__main__.Caminho
+        distancia: 9.433981132056603
+        feromonio: 9.993734212517823e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id017
+        pontoB: *id025
+    12: &id045
+      caminho: !!python/object:__main__.Caminho
+        distancia: 8.06225774829855
+        feromonio: 9.997815254994717e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id017
+        pontoB: *id014
+  8:
+    3: *id030
+    6: *id031
+    9: &id036
+      caminho: !!python/object:__main__.Caminho
+        distancia: 1.4142135623730951
+        feromonio: 9.999595162339774e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id024
+        pontoB: *id006
+  9:
+    0: *id032
+    1: *id033
+    2: *id034
+    6: *id035
+    8: *id036
+    13: &id050
+      caminho: !!python/object:__main__.Caminho
+        distancia: 7.810249675906654
+        feromonio: 9.998230356545721e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id006
+        pontoB: *id010
+  10:
+    3: *id037
+    6: *id038
+    7: *id039
+    14: &id055
+      caminho: !!python/object:__main__.Caminho
+        distancia: 4.47213595499958
+        feromonio: 9.999314403867589e-05
+        feromonioInicial: 1.0e-05
+        pontoA: *id025
+        pontoB: *id007
+  11:
+    1: *id040
+    4: *id041
+    5: *id042
+  12:
+    1: *id043
+    3: *id044
+    7: *id045
+  13:
+    0: *id046
+    2: *id047
+    5: *id048
+    6: *id049
+    9: *id050
+  14:
+    0: *id051
+    1: *id052
+    2: *id053
+    3: *id054
+    10: *id055
+adjlist_dict_factory: &id057 !!python/name:__builtin__.dict ''
+edge: *id056
+edge_attr_dict_factory: *id057
+graph: {alfa: 0.1, beta: 2.5, name: 'fast_gnp_random_graph(15,0.4)'}
+node:
+  0:
+    formiga: null
+    ponto: *id001
+  1:
+    formiga: null
+    ponto: *id003
+  2:
+    formiga: !!python/object:__main__.Formiga
+      black_list: [11, 1, 0, 2, 6, 8, 9]
+      funcao: PATRULHA
+      nome: ANT-Marcile21
+      pontoAtual: *id010
+    ponto: *id004
+  3:
+    formiga: !!python/object:__main__.Formiga
+      black_list: [13, 0, 1, 2]
+      funcao: PATRULHA
+      nome: ANT-Marcile21
+      pontoAtual: *id005
+    ponto: *id012
+  4:
+    formiga: null
+    ponto: *id016
+  5:
+    formiga: !!python/object:__main__.Formiga
+      black_list: [8, 9]
+      funcao: PATRULHA
+      nome: ANT-Bernardina25
+      pontoAtual: *id010
+    ponto: *id013
+  6:
+    formiga: !!python/object:__main__.Formiga
+      black_list: [4, 11, 1, 0, 2, 6, 7, 10, 14]
+      funcao: PATRULHA
+      nome: ANT-Jarib56
+      pontoAtual: *id012
+    ponto: *id005
+  7:
+    formiga: !!python/object:__main__.Formiga
+      black_list: [14, 3, 10, 6, 0, 2, 1, 11, 4]
+      funcao: PATRULHA
+      nome: ANT-Dolores63
+      pontoAtual: *id017
+    ponto: *id017
+  8:
+    formiga: !!python/object:__main__.Formiga
+      black_list: [4, 11, 1, 0, 2, 7, 5, 3, 8]
+      funcao: PATRULHA
+      nome: ANT-Trumaine59
+      pontoAtual: *id006
+    ponto: *id024
+  9:
+    formiga: !!python/object:__main__.Formiga
+      black_list: [12, 7, 2, 0, 1, 9]
+      funcao: PATRULHA
+      nome: ANT-Claudetta75
+      pontoAtual: *id005
+    ponto: *id006
+  10:
+    formiga: !!python/object:__main__.Formiga
+      black_list: [4, 1, 0, 2, 7, 5, 13, 6, 8]
+      funcao: PATRULHA
+      nome: ANT-Gus9
+      pontoAtual: *id006
+    ponto: *id025
+  11:
+    formiga: null
+    ponto: *id018
+  12:
+    formiga: !!python/object:__main__.Formiga
+      black_list: [8, 9, 6, 0, 1, 2, 14, 10, 3, 12]
+      funcao: PATRULHA
+      nome: ANT-Sidnee30
+      pontoAtual: *id017
+    ponto: *id014
+  13:
+    formiga: !!python/object:__main__.Formiga
+      black_list: [10, 3, 5, 1, 4]
+      funcao: PATRULHA
+      nome: ANT-Andrey82
+      pontoAtual: *id017
+    ponto: *id010
+  14:
+    formiga: null
+    ponto: *id007
+node_dict_factory: *id057

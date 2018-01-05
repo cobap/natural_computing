@@ -211,7 +211,7 @@ class Cidade:
 		self.n_vertices = n_vertices
 		if(len(sys.argv) == 2):
 			print('LENDO GRAFO DO ARQUIVO')
-			g = nx.read_yaml(sys.argv[1] + '.yaml')
+			g = nx.read_yaml('./grafo/' +sys.argv[1] + '.yaml')
 		else:
 			print('CRIANDO GRAFO DO ZERO')
 			g = nx.fast_gnp_random_graph(n_vertices, chance_aresta)
@@ -266,7 +266,7 @@ class Cidade:
 		nx.draw_networkx(g, with_labels=True)
 		# nx.draw_spectral(g, with_labels=True)
 		# plt.savefig("graficoOriginal" + sys.argv[1] + ".png")
-		plt.savefig("graficoOriginal.png")
+		plt.savefig("./imgs/graficoOriginal.png")
 		# plt.show()
 
 	def getPontoAleatorio(self):
@@ -433,7 +433,7 @@ class Cidade:
 		# 	print abelha
 
 	def reduzirGrafo(self):
-		nx.write_yaml(self.g,'grafo_original.yaml')
+		nx.write_yaml(self.g,'./grafo/grafo_original.yaml')
 
 		sys.stdout = output_alg
 		print('N_VERTICES', 'CHANCE_ARESTA', 'ALFA', 'BETA', 'ITERACOES FORMIGAS', 'QTD_FORMIGAS', 'QTD_ABELHAS', 'QTD_HQ', 'RODADAS', 'TIPO_ALG_FORMIGAS', 'REDUZ_GRAFO', 'CALCULA_CAM_ABELHA')
@@ -485,48 +485,11 @@ class Cidade:
 		plt.figure(2)
 		nx.draw_networkx(subGrafo, node_color='b', with_labels=True)
 		# nx.draw_spectral(subGrafo, node_color='b', with_labels=True)
-		plt.savefig("graficoModificado.png")
+		plt.savefig("./imgs/graficoModificado.png")
 		# print(subGrafo.number_of_edges())
 		# print('-------------------------------------------------------------------------')
-		nx.write_yaml(self.g,'grafo_modificado.yaml')
+		nx.write_yaml(self.g,'./grafo/grafo_modificado.yaml')
 		return subGrafo
-
-	def reduzGrafo(self):
-		print('-------------------------------------------------------------------------')
-		print('-------------------------REDUZINGO GRAFO--------------------')
-		melhor_aresta = {}
-		nos = {}
-		for no in self.g.nodes():
-			# print(no)
-			vizinhos = self.g.neighbors(no)
-			# print(vizinhos)
-			feromonioVizinhos = [self.g[no][vizinho]['caminho'].feromonio for vizinho in vizinhos]
-			melhor_aresta[self.g[no][vizinhos[feromonioVizinhos.index(max(feromonioVizinhos))]]['caminho']] = no
-			nos[str(no)] = no
-			# print(feromonioVizinhos)
-			# print('maior feromonio', feromonioVizinhos.index(max(feromonioVizinhos)))
-			# print('no com maior feromonio', vizinhos[feromonioVizinhos.index(max(feromonioVizinhos))])
-			# g.node[caminhos2[feromoniosCaminhos.index(max(feromoniosCaminhos))]]['ponto']
-		# print(melhor_aresta)
-		# print(nos)
-
-		subGrafo = nx.Graph()
-		for no in nos.values():
-			subGrafo.add_node(no)
-
-		for aresta in melhor_aresta.keys():
-			subGrafo.add_edge(aresta.pontoA.numero, aresta.pontoB.numero, caminho=aresta)
-			# print(aresta)
-			# print(aresta.pontoA.numero)
-			# g[aresta[0]][aresta[1]]['caminho'] = caminho
-		print(subGrafo.edges())
-		print(self.g.edges())
-
-		print('É CONEXO?', nx.is_connected(subGrafo))
-		# nx.draw(subGrafo, with_labels=True)
-		nx.draw_networkx(subGrafo, node_color='b')
-		plt.savefig("subgrafico.png")
-		print('-------------------------------------------------------------------------')
 
 	def iniciaCidade(self):
 		# Inicia cidade - criando formigas, HQs, eventos, etc...
@@ -643,9 +606,9 @@ class Cidade:
 #-------------------- MAIN --------------------#
 ########################
 if __name__ == "__main__":
-	output_eventos = open("eventos_output.csv", 'w')
-	output_grafo = open("grafo_output.csv", 'w')
-	output_alg = open("grafo_algoritmo_naturais.csv", 'w')
+	output_eventos = open("./results/eventos_output.csv", 'w')
+	output_grafo = open("./results/grafo_output.csv", 'w')
+	output_alg = open("./results/grafo_algoritmo_naturais.csv", 'w')
 	# sys.stdout = output_alg
 	# sys.stdout = sys.__stdout__  
 	n_vertices = 15
