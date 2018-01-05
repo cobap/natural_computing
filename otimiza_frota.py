@@ -471,7 +471,7 @@ class Cidade:
 		# SG=networkx.Graph( [ (u,v,d) for u,v,d in G.edges(data=True) if d ['weight']>cutoff])
 		# print('É CONEXO?', nx.is_connected(subGrafo))
 		if(nx.is_connected(subGrafo) is False):
-			print("IMPOSSÍVEL CRIAR SUBGRAFO CONEXO > ", self.versao)
+			print(self.versao, "IMPOSSÍVEL CRIAR SUBGRAFO CONEXO > ", self.n_vertices)
 			return None
 		sys.stdout = output_grafo
 		print('#VERTICES', '#ARESTAS', 'AVG_GRAU_POR_VERTICE', 'AVG_FEROMONIO_ARESTA')
