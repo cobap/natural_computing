@@ -18,6 +18,7 @@ class Ponto:
 		self.objeto = False
 		self.nome = self.setNome()
 		self.numero = numero
+		self.grau_original = 0
 
 	def setNome(self):
 		letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
@@ -205,13 +206,20 @@ class Evento:
 
 class Cidade:
 	def __init__(self, n_vertices, chance_aresta, alfa, beta, iteracoes, qtdFormigas, rodadas, algoritmo_formiga, reduz_grafo, calcula_path):
+		
 		# Cria gráfico aleatório com n_vertices e % de existir uma aresta entre dois vertices
 		self.n_vertices = n_vertices
-		g = nx.fast_gnp_random_graph(n_vertices, chance_aresta)
-		# Verifica se vertíce é conexo
-		while(nx.is_connected(g) is not True):
-			# Caso não seja, o recrie até que seja - comoqueremos facilitar as coisas, só podemos avançar com um vertice que permite andar por uma aresta
-			g = nx.fast_gnp_random_graph(5, 0.4)
+		if(len(sys.argv) == 2):
+			print('LENDO GRAFO DO ARQUIVO')
+			g = nx.read_yaml(sys.argv[1] + '.yaml')
+		else:
+			print('CRIANDO GRAFO DO ZERO')
+			g = nx.fast_gnp_random_graph(n_vertices, chance_aresta)
+			# Verifica se vertíce é conexo
+			print('TESTANDO SE É CONEXO')
+			while(nx.is_connected(g) is not True):
+				# Caso não seja, o recrie até que seja - comoqueremos facilitar as coisas, só podemos avançar com um vertice que permite andar por uma aresta
+				g = nx.fast_gnp_random_graph(5, 0.4)
 
 		g.graph['alfa'] = alfa
 		g.graph['beta'] = beta
@@ -221,6 +229,7 @@ class Cidade:
 			# Criamos o ponto que irá definir aquele nó - sendo um número com uma coordenada aleatória entre 1~10. Recebe também o numero do vertice
 			ponto = Ponto(random.randint(1,10), random.randint(1,10), no)
 			# Definimos o Ponto como a variável 'ponto' dentro do verdadeiro nó do grafo
+			ponto.grau_original = g.degree(no)
 			g.node[no]['ponto'] = ponto
 			# Também definimos que começa sem nenhuma formiga
 			g.node[no]['formiga'] = None
@@ -235,7 +244,9 @@ class Cidade:
 
 			# print(caminho)
 			# print(g[aresta[0]][aresta[1]]['caminho'].feromonio)
-
+		self.chance_aresta = chance_aresta
+		self.alfa = alfa
+		self.beta = beta
 		self.g = g
 		self.iteracoes = iteracoes
 		self.rodadas = rodadas
@@ -251,8 +262,11 @@ class Cidade:
 
 		# plt.figure()
 		# nx.draw(g, with_labels=True)
+		plt.figure(1)
 		nx.draw_networkx(g, with_labels=True)
-		plt.savefig("grafico" + sys.argv[1] + ".png")
+		# nx.draw_spectral(g, with_labels=True)
+		# plt.savefig("graficoOriginal" + sys.argv[1] + ".png")
+		plt.savefig("graficoOriginal.png")
 		# plt.show()
 
 	def getPontoAleatorio(self):
@@ -262,7 +276,7 @@ class Cidade:
 		# O número de formigas sempre será 1/3 do número de vertices
 		# self.qtdFormigas = int(round((float) (self.n_vertices * 1)/self.qtdFormigasIndex))
 		self.qtdFormigas = self.qtdFormigasIndex
-		print('QTD DE FORMIGAS: ', self.qtdFormigas)
+		# print('QTD DE FORMIGAS: ', self.qtdFormigas)
 		formigas_temp = [Formiga('PATRULHA', self.getPontoAleatorio()) for i in range(self.qtdFormigas)]
 
 		for formiga in formigas_temp:
@@ -277,15 +291,15 @@ class Cidade:
 	def criaHQs(self):
 		# Número de HQ é sempre 1/5 do número de vertices do grafo
 		self.qtdHQs = int(round((float) (self.n_vertices * 1)/5))
-		print('QTD DE HQs: ', self.qtdHQs)
-		print('QTD DE Abelhas: ', self.mediaAbelhas)
+		# print('QTD DE HQs: ', self.qtdHQs)
+		# print('QTD DE Abelhas: ', self.mediaAbelhas)
 		# Adiciona todos os HQ criados dentro da cidade
 		for hq in range(self.qtdHQs):
 			no_aleatorio = self.getPontoAleatorio()
 			hqTemp = HQ(self.mediaAbelhas, no_aleatorio, hq)
 			self.hqs.append(hqTemp)
 			# hqTemp.setID(self.hqs.index(hqTemp))
-			print('NOME ', hqTemp.nome, " | LOCAL: ", hqTemp.pontoAtual.numero)
+			# print('NOME ', hqTemp.nome, " | LOCAL: ", hqTemp.pontoAtual.numero)
 
 	def caminhaFormigaAleatoriamente(self, formiga, g):
 			# print(formiga.pontoAtual.numero)
@@ -419,6 +433,23 @@ class Cidade:
 		# 	print abelha
 
 	def reduzirGrafo(self):
+		nx.write_yaml(self.g,'grafo_original.yaml')
+
+		sys.stdout = output_alg
+		print('N_VERTICES', 'CHANCE_ARESTA', 'ALFA', 'BETA', 'ITERACOES FORMIGAS', 'QTD_FORMIGAS', 'QTD_ABELHAS', 'QTD_HQ', 'RODADAS', 'TIPO_ALG_FORMIGAS', 'REDUZ_GRAFO', 'CALCULA_CAM_ABELHA')
+		print(self.n_vertices, self.chance_aresta, self.alfa, self.beta, self.iteracoes, self.qtdFormigas, self.mediaAbelhas, self.qtdHQs, self.rodadas, self.algoritmo_formiga, self.reduz_grafo, self.calcula_path)
+		sys.stdout = sys.__stdout__  
+
+		sys.stdout = output_grafo
+		print('#VERTICES', '#ARESTAS', 'AVG_GRAU_POR_VERTICE', 'AVG_FEROMONIO_ARESTA')
+		degrees = self.g.degree()
+		avg_degree = (float) (sum(degrees.values()))/len(degrees)
+		avg_feromonio = 0.0
+		for edge in self.g.edges(data=True):
+			avg_feromonio = avg_feromonio + edge[2]['caminho'].feromonio
+		avg_feromonio = avg_feromonio/len(self.g.edges())
+		print(self.g.number_of_nodes(), self.g.number_of_edges(), avg_degree, avg_feromonio)
+		sys.stdout = sys.__stdout__  
 		# print('-------------------------------------------------------------------------')
 		# print('-------------------------REDUZINGO GRAFO--------------------')
 		# print(self.g.number_of_edges())
@@ -439,10 +470,25 @@ class Cidade:
 		# print('É CONEXO?', nx.is_connected(subGrafo))
 		if(nx.is_connected(subGrafo) is False):
 			sys.exit("IMPOSSÍVEL CRIAR SUBGRAFO CONEXO")
-		nx.draw_networkx(subGrafo, node_color='b')
-		plt.savefig("subgrafico.png")
+		# plt.savefig("subgrafico.png")
+		sys.stdout = output_grafo
+		print('#VERTICES', '#ARESTAS', 'AVG_GRAU_POR_VERTICE', 'AVG_FEROMONIO_ARESTA')
+		degrees = subGrafo.degree()
+		avg_degree = (float) (sum(degrees.values()))/len(degrees)
+		avg_feromonio = 0.0
+		for edge in subGrafo.edges(data=True):
+			avg_feromonio = avg_feromonio + edge[2]['caminho'].feromonio
+		avg_feromonio = avg_feromonio/len(subGrafo.edges())
+		print(subGrafo.number_of_nodes(), subGrafo.number_of_edges(), avg_degree, avg_feromonio)
+		sys.stdout = sys.__stdout__  
+
+		plt.figure(2)
+		nx.draw_networkx(subGrafo, node_color='b', with_labels=True)
+		# nx.draw_spectral(subGrafo, node_color='b', with_labels=True)
+		plt.savefig("graficoModificado.png")
 		# print(subGrafo.number_of_edges())
 		# print('-------------------------------------------------------------------------')
+		nx.write_yaml(self.g,'grafo_modificado.yaml')
 		return subGrafo
 
 	def reduzGrafo(self):
@@ -491,7 +537,7 @@ class Cidade:
 		self.criaHQs()
 		pelotoes = {}
 		# MAIN 
-
+		
 		# Para cada iteração - rode o ACO e otimize os caminhos
 		# -- IDEIA -- rodar o ACO antes dos eventos e criar um subgrafo que mostre os melhores caminhos, então implementar para que as abelhas só visitem esse subgrafo sempre levando em conta a distancia do evento e o feromonio
 		# Para gerar esse subgrafo - podemos utilizar a lista de arestas que tiveram os n° maiores feromonios desde que não liguem o mesmo vertice. Assim - teremos um grafo que teve o maior feromonio entre todos os vertices
@@ -499,23 +545,34 @@ class Cidade:
 		while(iterador <= self.iteracoes):
 			for formiga in self.formigas:
 				self.caminhaFormigaACO(formiga, self.g) if self.algoritmo_formiga == 1 else self.caminhaFormigaAleatoriamente(formiga, self.g)
+			# Para cada aresta dentro do grafo, decaia o feromonio 
+			for aresta in self.g.edges():
+				self.g[aresta[0]][aresta[1]]['caminho'].decaiFeromonio()
+			
 			iterador = iterador + 1
 
 		if(self.reduz_grafo == 1):
 			self.g = self.reduzirGrafo()
 
+		sys.stdout = output_eventos
+		print("EVENTO", "NOME", "INTENSIDADE", "PONTO", "GRAU_ATUAL", "GRAU_ORIGINAL", "RODADAS", "STATUS")
+		sys.stdout = sys.__stdout__  
 		while(rodadas <= self.rodadas):
 			# A cada 3 iterações, criamos um novo evento na cidade
 			if rodadas % 3 == 0:
 				if len(self.eventos_hold) >= len(self.hqs):
 					# print('LISTA CHEIA')
 					if self.eventos[0].inicio + self.n_vertices <= rodadas:
-						print("EVENTO:" , self.eventos[0].nome, self.eventos[0].intensidade, self.eventos[0].pontoAtual.numero, rodadas, 'TIME-OUT')
+						sys.stdout = output_eventos
+						print("EVENTO:" , self.eventos[0].nome, self.eventos[0].intensidade, self.eventos[0].pontoAtual.numero, self.g.degree(self.eventos[0].pontoAtual.numero), self.eventos[0].pontoAtual.grau_original, rodadas, 'TIME-OUT')
+						sys.stdout = sys.__stdout__  
 						self.hqs[abelhaLider[0].id_hq].retornaPelotao(pelotoes[self.eventos[0].nome])
 						self.eventos.remove(self.eventos[0])
 
 						evento_on_hold = self.eventos_hold.pop()
-						print("EVENTO:" , evento_on_hold.nome, evento_on_hold.intensidade, evento_on_hold.pontoAtual.numero, rodadas, 'RE-ATIVO')
+						sys.stdout = output_eventos
+						print("EVENTO:" , evento_on_hold.nome, evento_on_hold.intensidade, evento_on_hold.pontoAtual.numero, self.g.degree(evento_on_hold.pontoAtual.numero), evento_on_hold.pontoAtual.grau_original, rodadas, 'RE-ATIVO')
+						sys.stdout = sys.__stdout__  
 						evento_on_hold.setInicio(rodadas)
 						self.eventos.append(self.g.node[evento_on_hold.pontoAtual.numero]['evento'])
 						self.acionaPelotaoParaAtaque(pelotoes, self.hqs[abelhaLider[0].id_hq], evento_on_hold, self.g)
@@ -531,9 +588,13 @@ class Cidade:
 					if(hqSelecionado is None):
 						self.eventos.remove(evento)
 						# print("EVENTO: " , evento.nome, 'INTENSIDADE: ', evento.intensidade, 'LOCAL', evento.pontoAtual.numero, "ITER", rodadas, "STATUS", 'ON-HOLD')
-						print("EVENTO:" , evento.nome, evento.intensidade, evento.pontoAtual.numero, rodadas, 'ON-HOLD')
+						sys.stdout = output_eventos
+						print("EVENTO:" , evento.nome, evento.intensidade, evento.pontoAtual.numero, self.g.degree(evento.pontoAtual.numero), evento.pontoAtual.grau_original, rodadas, 'ON-HOLD')
+						sys.stdout = sys.__stdout__  
 					else:
-						print("EVENTO:" , evento.nome, evento.intensidade, evento.pontoAtual.numero, rodadas, 'ATIVO')
+						sys.stdout = output_eventos
+						print("EVENTO:" , evento.nome, evento.intensidade, evento.pontoAtual.numero, self.g.degree(evento.pontoAtual.numero), evento.pontoAtual.grau_original, rodadas, 'ATIVO')
+						sys.stdout = sys.__stdout__  
 						evento.setInicio(rodadas)
 						self.acionaPelotaoParaAtaque(pelotoes, hqSelecionado, evento, self.g)
 					
@@ -550,7 +611,9 @@ class Cidade:
 				#Caso tenha chego no evento
 				if(abelhaLider[0].pontoAtual == evento.pontoAtual):
 					# print('PELOTAO CHEGOU AO EVENTO!')
-					print("EVENTO:" , evento.nome, evento.intensidade, evento.pontoAtual.numero, rodadas, 'COMPLETO')
+					sys.stdout = output_eventos
+					print("EVENTO:" , evento.nome, evento.intensidade, evento.pontoAtual.numero, self.g.degree(evento.pontoAtual.numero), evento.pontoAtual.grau_original, rodadas, 'COMPLETO')
+					sys.stdout = sys.__stdout__  
 					eventos_mortos.append(evento)
 					self.eventos.remove(evento)
 
@@ -559,20 +622,20 @@ class Cidade:
 					if len(self.eventos_hold) > 0:
 						evento_on_hold = self.eventos_hold.pop()
 						# print('RE-ATIVANDO EVENTO - AGORA FALTAM:', len(self.eventos_hold))
-						print("EVENTO:" , evento_on_hold.nome, evento_on_hold.intensidade, evento_on_hold.pontoAtual.numero, rodadas, 'RE-ATIVO')
+						sys.stdout = output_eventos
+						print("EVENTO:" , evento_on_hold.nome, evento_on_hold.intensidade, evento_on_hold.pontoAtual.numero, self.g.degree(evento_on_hold.pontoAtual.numero), evento_on_hold.pontoAtual.grau_original, rodadas, 'RE-ATIVO')
+						sys.stdout = sys.__stdout__  
 						evento_on_hold.setInicio(rodadas)
 						self.eventos.append(self.g.node[evento_on_hold.pontoAtual.numero]['evento'])
 						self.acionaPelotaoParaAtaque(pelotoes, self.hqs[abelhaLider[0].id_hq], evento_on_hold, self.g)
 					
 			# print('NUMERO EVENTOS: ', len(self.eventos))
+ 
 
 			rodadas = rodadas + 1
 
-		# Para cada aresta dentro do grafo, decaia o feromonio
-		for aresta in self.g.edges():
-			# print(self.g[aresta[0]][aresta[1]]['caminho'].feromonio)
-			self.g[aresta[0]][aresta[1]]['caminho'].decaiFeromonio()
-			# print(self.g[aresta[0]][aresta[1]]['caminho'].feromonio)
+
+		output_eventos.close()
 
 
 
@@ -580,6 +643,11 @@ class Cidade:
 #-------------------- MAIN --------------------#
 ########################
 if __name__ == "__main__":
+	output_eventos = open("eventos_output.csv", 'w')
+	output_grafo = open("grafo_output.csv", 'w')
+	output_alg = open("grafo_algoritmo_naturais.csv", 'w')
+	# sys.stdout = output_alg
+	# sys.stdout = sys.__stdout__  
 	n_vertices = 15
 	chance_aresta = 0.4
 	alfa = 0.1
@@ -587,12 +655,12 @@ if __name__ == "__main__":
 
 	cidade = Cidade(n_vertices,chance_aresta, alfa, beta, 50, 20, 1000, 1, 1, 1)
 	cidade.iniciaCidade()
-
+	# plt.show()
 	# Proximos passos
-		#número de arestas vs número de vértices 
-		#número de arestas vs numero de vertices com aumento da probabilidade
-		# Graficos mostrando nós que mais são afetados - quais são suas caracteristicas pré e pós redução? tinham maior grau? 
-		# Qt tempo em média se demora para atingit o evento - qd as formigas são ativadas ou qd andam aleatóriamente
+		#OK número de arestas vs número de vértices 
+		#OK número de arestas vs numero de vertices com aumento da probabilidade
+		#OK Graficos mostrando nós que mais são afetados - quais são suas caracteristicas pré e pós redução? tinham maior grau? 
+		#OK Qt tempo em média se demora para atingit o evento - qd as formigas são ativadas ou qd andam aleatóriamente
 		# Como o item acima varia de acordo com o tempo
 		# Como tudo isso varia de acordo com o número de vertices, numero de arestas que começa o grafo, alfa e beta
 		# Qt de diferença faz caso as formigas rodem 10, 100 ou 10000 vezes antes das abelhas começarem? 
