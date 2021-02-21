@@ -200,13 +200,13 @@ class Evento:
 		self.range = 1
 
 	def __str__(self):
-		resultado = "| Intensidade: " + str(self.intensidade) 
+		resultado = "| Intensidade: " + str(self.intensidade)
 		resultado += " | Local: " + str(self.pontoAtual.numero)
 		return self.nome + resultado
 
 class Cidade:
 	def __init__(self, versao, n_vertices, chance_aresta, alfa, beta, iteracoes, qtdFormigas, rodadas, algoritmo_formiga, reduz_grafo, calcula_path):
-		
+
 		# Cria gráfico aleatório com n_vertices e % de existir uma aresta entre dois vertices
 		self.n_vertices = n_vertices
 		self.versao = versao
@@ -239,7 +239,7 @@ class Cidade:
 
 		# Para cada aresta dentro do grafo
 		for aresta in g.edges():
-			# Criamos um caminho que liga 
+			# Criamos um caminho que liga
 			caminho = Caminho(g.node[aresta[0]]['ponto'], g.node[aresta[1]]['ponto'])
 			g[aresta[0]][aresta[1]]['caminho'] = caminho
 
@@ -375,6 +375,7 @@ class Cidade:
 
 		# Calcula a probabilidade baseado no feromonio do caminho e a sua distancia
 		feromoniosCaminhos = [g[pontoAntigo.numero][numero_vertice]['caminho'].feromonio for numero_vertice in caminhos2]
+
 		probabilidades = [(math.pow(g[pontoAntigo.numero][numero_vertice]['caminho'].feromonio, g.graph['alfa']) * math.pow(1.0 / g[pontoAntigo.numero][numero_vertice]['caminho'].distancia, g.graph['beta'])) for numero_vertice in caminhos2]
 		# probabilidade = (math.pow(caminho.feromonio, alfa) * math.pow(1.0 / caminho.distancia, beta))
 		# print(caminhos2)
@@ -411,11 +412,11 @@ class Cidade:
 		# for hq in hqDisponiveis:
 		# 	print(hq.nome, hq.id, hq.abelhasAtual)
 		distancias = [math.sqrt(pow(hqSelecionado.pontoAtual.x - evento.pontoAtual.x ,2) + pow(hqSelecionado.pontoAtual.y - evento.pontoAtual.y ,2)) for hqSelecionado in hqDisponiveis]
-		
+
 		if len(distancias) == 0:
 			self.eventos_hold.append(evento)
 			return None
-		
+
 		# hqSelecionado = self.hqs[distancias.index(min(distancias))]
 		hqSelecionado = hqDisponiveis[distancias.index(min(distancias))]
 		# print('MENOR DISTANCIA:', hqSelecionado.nome)
@@ -424,7 +425,7 @@ class Cidade:
 	def acionaPelotaoParaAtaque(self, pelotoes, hqSelecionado, evento, g):
 		# Criamos um pelotao com o nome do evento
 		pelotoes[evento.nome] = hqSelecionado.lancaPelotao(evento)
-		
+
 		# Caso o pelotao seja mais fraco que o que a colmeia suporte, precisamos reduzir sua força esperando alguns rounds...
 		while(pelotoes[evento.nome] == None):
 			evento.intensidade = evento.intensidade - 1
@@ -440,7 +441,7 @@ class Cidade:
 		sys.stdout = output_alg
 		print('N_VERTICES', 'CHANCE_ARESTA', 'ALFA', 'BETA', 'ITERACOES FORMIGAS', 'QTD_FORMIGAS', 'QTD_ABELHAS', 'QTD_HQ', 'RODADAS', 'TIPO_ALG_FORMIGAS', 'REDUZ_GRAFO', 'CALCULA_CAM_ABELHA')
 		print(self.n_vertices, self.chance_aresta, self.alfa, self.beta, self.iteracoes, self.qtdFormigas, self.mediaAbelhas, self.qtdHQs, self.rodadas, self.algoritmo_formiga, self.reduz_grafo, self.calcula_path)
-		sys.stdout = sys.__stdout__  
+		sys.stdout = sys.__stdout__
 
 		sys.stdout = output_grafo
 		print('#VERTICES', '#ARESTAS', 'AVG_GRAU_POR_VERTICE', 'AVG_FEROMONIO_ARESTA')
@@ -451,7 +452,7 @@ class Cidade:
 			avg_feromonio = avg_feromonio + edge[2]['caminho'].feromonio
 		avg_feromonio = avg_feromonio/len(self.g.edges())
 		print(self.g.number_of_nodes(), self.g.number_of_edges(), avg_degree, avg_feromonio)
-		sys.stdout = sys.__stdout__  
+		sys.stdout = sys.__stdout__
 		# print('-------------------------------------------------------------------------')
 		# print('-------------------------REDUZINGO GRAFO--------------------')
 		# print(self.g.number_of_edges())
@@ -482,7 +483,7 @@ class Cidade:
 			avg_feromonio = avg_feromonio + edge[2]['caminho'].feromonio
 		avg_feromonio = avg_feromonio/len(subGrafo.edges())
 		print(subGrafo.number_of_nodes(), subGrafo.number_of_edges(), avg_degree, avg_feromonio)
-		sys.stdout = sys.__stdout__  
+		sys.stdout = sys.__stdout__
 
 		plt.figure('321' + str(self.versao))
 		nx.draw_networkx(subGrafo, node_color='b', with_labels=True)
@@ -501,8 +502,8 @@ class Cidade:
 		self.criaFormigas()
 		self.criaHQs()
 		pelotoes = {}
-		# MAIN 
-		
+		# MAIN
+
 		# Para cada iteração - rode o ACO e otimize os caminhos
 		# -- IDEIA -- rodar o ACO antes dos eventos e criar um subgrafo que mostre os melhores caminhos, então implementar para que as abelhas só visitem esse subgrafo sempre levando em conta a distancia do evento e o feromonio
 		# Para gerar esse subgrafo - podemos utilizar a lista de arestas que tiveram os n° maiores feromonios desde que não liguem o mesmo vertice. Assim - teremos um grafo que teve o maior feromonio entre todos os vertices
@@ -510,10 +511,10 @@ class Cidade:
 		while(iterador <= self.iteracoes):
 			for formiga in self.formigas:
 				self.caminhaFormigaACO(formiga, self.g) if self.algoritmo_formiga == 1 else self.caminhaFormigaAleatoriamente(formiga, self.g)
-			# Para cada aresta dentro do grafo, decaia o feromonio 
+			# Para cada aresta dentro do grafo, decaia o feromonio
 			for aresta in self.g.edges():
 				self.g[aresta[0]][aresta[1]]['caminho'].decaiFeromonio()
-			
+
 			iterador = iterador + 1
 
 		if(self.reduz_grafo == 1):
@@ -523,7 +524,7 @@ class Cidade:
 
 		sys.stdout = output_eventos
 		print("EVENTO", "NOME", "INTENSIDADE", "PONTO", "GRAU_ATUAL", "GRAU_ORIGINAL", "RODADAS", "STATUS")
-		sys.stdout = sys.__stdout__  
+		sys.stdout = sys.__stdout__
 		while(rodadas <= self.rodadas):
 			# A cada 3 iterações, criamos um novo evento na cidade
 			if rodadas % 3 == 0:
@@ -532,39 +533,39 @@ class Cidade:
 					if self.eventos[0].inicio + self.n_vertices <= rodadas:
 						sys.stdout = output_eventos
 						print("EVENTO:" , self.eventos[0].nome, self.eventos[0].intensidade, self.eventos[0].pontoAtual.numero, self.g.degree(self.eventos[0].pontoAtual.numero), self.eventos[0].pontoAtual.grau_original, rodadas, 'TIME-OUT')
-						sys.stdout = sys.__stdout__  
+						sys.stdout = sys.__stdout__
 						self.hqs[abelhaLider[0].id_hq].retornaPelotao(pelotoes[self.eventos[0].nome])
 						self.eventos.remove(self.eventos[0])
 
 						evento_on_hold = self.eventos_hold.pop()
 						sys.stdout = output_eventos
 						print("EVENTO:" , evento_on_hold.nome, evento_on_hold.intensidade, evento_on_hold.pontoAtual.numero, self.g.degree(evento_on_hold.pontoAtual.numero), evento_on_hold.pontoAtual.grau_original, rodadas, 'RE-ATIVO')
-						sys.stdout = sys.__stdout__  
+						sys.stdout = sys.__stdout__
 						evento_on_hold.setInicio(rodadas)
 						self.eventos.append(self.g.node[evento_on_hold.pontoAtual.numero]['evento'])
 						self.acionaPelotaoParaAtaque(pelotoes, self.hqs[abelhaLider[0].id_hq], evento_on_hold, self.g)
-				else: 
+				else:
 					# print('NOVO EVENTO NA CIDADE')
 					evento = self.criaEvento()
-					
+
 					# Adicionamos o evento na lista de eventos e também como uma propriedade de um Nó
 					self.g.node[evento.pontoAtual.numero]['evento'] = evento
 					self.eventos.append(self.g.node[evento.pontoAtual.numero]['evento'])
 					hqSelecionado = self.selecionaHQ(evento)
-					
+
 					if(hqSelecionado is None):
 						self.eventos.remove(evento)
 						# print("EVENTO: " , evento.nome, 'INTENSIDADE: ', evento.intensidade, 'LOCAL', evento.pontoAtual.numero, "ITER", rodadas, "STATUS", 'ON-HOLD')
 						sys.stdout = output_eventos
 						print("EVENTO:" , evento.nome, evento.intensidade, evento.pontoAtual.numero, self.g.degree(evento.pontoAtual.numero), evento.pontoAtual.grau_original, rodadas, 'ON-HOLD')
-						sys.stdout = sys.__stdout__  
+						sys.stdout = sys.__stdout__
 					else:
 						sys.stdout = output_eventos
 						print("EVENTO:" , evento.nome, evento.intensidade, evento.pontoAtual.numero, self.g.degree(evento.pontoAtual.numero), evento.pontoAtual.grau_original, rodadas, 'ATIVO')
-						sys.stdout = sys.__stdout__  
+						sys.stdout = sys.__stdout__
 						evento.setInicio(rodadas)
 						self.acionaPelotaoParaAtaque(pelotoes, hqSelecionado, evento, self.g)
-					
+
 			eventos_mortos = []
 			for evento in self.eventos:
 				# print('ABELHAS EM MOVIMENTO')
@@ -580,7 +581,7 @@ class Cidade:
 					# print('PELOTAO CHEGOU AO EVENTO!')
 					sys.stdout = output_eventos
 					print("EVENTO:" , evento.nome, evento.intensidade, evento.pontoAtual.numero, self.g.degree(evento.pontoAtual.numero), evento.pontoAtual.grau_original, rodadas, 'COMPLETO')
-					sys.stdout = sys.__stdout__  
+					sys.stdout = sys.__stdout__
 					eventos_mortos.append(evento)
 					self.eventos.remove(evento)
 
@@ -591,13 +592,13 @@ class Cidade:
 						# print('RE-ATIVANDO EVENTO - AGORA FALTAM:', len(self.eventos_hold))
 						sys.stdout = output_eventos
 						print("EVENTO:" , evento_on_hold.nome, evento_on_hold.intensidade, evento_on_hold.pontoAtual.numero, self.g.degree(evento_on_hold.pontoAtual.numero), evento_on_hold.pontoAtual.grau_original, rodadas, 'RE-ATIVO')
-						sys.stdout = sys.__stdout__  
+						sys.stdout = sys.__stdout__
 						evento_on_hold.setInicio(rodadas)
 						self.eventos.append(self.g.node[evento_on_hold.pontoAtual.numero]['evento'])
 						self.acionaPelotaoParaAtaque(pelotoes, self.hqs[abelhaLider[0].id_hq], evento_on_hold, self.g)
-					
+
 			# print('NUMERO EVENTOS: ', len(self.eventos))
- 
+
 
 			rodadas = rodadas + 1
 
@@ -630,8 +631,8 @@ if __name__ == "__main__":
 		output_eventos.close()
 		output_grafo.close()
 		output_alg.close()
-	
-	
+
+
 
 
 
@@ -641,13 +642,13 @@ if __name__ == "__main__":
 
 
 	# Proximos passos
-		#OK número de arestas vs número de vértices 
+		#OK número de arestas vs número de vértices
 		#OK número de arestas vs numero de vertices com aumento da probabilidade
-		#OK Graficos mostrando nós que mais são afetados - quais são suas caracteristicas pré e pós redução? tinham maior grau? 
+		#OK Graficos mostrando nós que mais são afetados - quais são suas caracteristicas pré e pós redução? tinham maior grau?
 		#OK Qt tempo em média se demora para atingit o evento - qd as formigas são ativadas ou qd andam aleatóriamente
 		# Como o item acima varia de acordo com o tempo
 		# Como tudo isso varia de acordo com o número de vertices, numero de arestas que começa o grafo, alfa e beta
-		# Qt de diferença faz caso as formigas rodem 10, 100 ou 10000 vezes antes das abelhas começarem? 
+		# Qt de diferença faz caso as formigas rodem 10, 100 ou 10000 vezes antes das abelhas começarem?
 		#? Implementar para que realmente o caminho das abelhas seja uma chance de ida, não uma verdade
 		# percentual resultados eliminação de arestas
 		# percentual de resultados que da errado - quais os possíveis erros
